@@ -6,11 +6,21 @@ class Player extends BaseActor {
   }
 
   update() {
+    this.handleInput();
+    super.update();
+  }
+
+  handleInput() {
     if (keyIsDown(LEFT_ARROW)) {
       this.angle -= this.rotateSpeed;
     }
     if (keyIsDown(RIGHT_ARROW)) {
       this.angle += this.rotateSpeed;
+    }
+    if (keyIsDown(UP_ARROW)) {
+      let force = p5.Vector.fromAngle(this.angle);
+      force.mult(0.2);
+      this.velocity.add(force);
     }
   }
 
