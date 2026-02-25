@@ -1,16 +1,9 @@
-// Project Title
-// Your Name
-// Date
-//
-// Extra for Experts:
-// - describe what you did to take this project "above and beyond"
-
+let player;
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(800, 800);
 }
 
 function draw() {
-  background(220);
-  circle(10,10,10);
+  background(0);
 }
