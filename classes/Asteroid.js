@@ -2,6 +2,14 @@ class Asteroid extends BaseActor {
   constructor(size, position, velocity) {
     super(size, position, velocity);
     this.acceleration = createVector(0, 0);
+
+    if (this.size == 50) {
+      this.type = "large";
+    } else if (this.size == 35) {
+      this.type = "medium";
+    } else if (this.size == 25) {
+      this.type = "small";
+    }
   }
 
   update() {
