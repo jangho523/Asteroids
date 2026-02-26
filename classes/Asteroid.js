@@ -14,6 +14,6 @@ class Asteroid extends BaseActor {
   }
 
   draw() {
-    square(this.position.x, this.position.y, this.size);
+    circle(this.position.x, this.position.y, this.size);
   }
 }

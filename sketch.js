@@ -10,10 +10,7 @@ function setup() {
 
 function draw() {
   background(0);
-
-  player.update();
-  player.draw();
-
+  
   for (let asteroid of largeAsteroids) {
     asteroid.update();
     asteroid.draw();
@@ -30,6 +27,10 @@ function draw() {
     }
   }
 
+  player.update();
+  player.draw();
+
+
   checkCollisions();
 }
 
@@ -45,9 +46,25 @@ function makeAsteroids(count) {
 }
 
 function checkCollisions() {
-  for (let i = 0; i < largeAsteroids.length; i++) {
+  // Player and Asteroids
+  for (let i = largeAsteroids.length - 1; i >= 0; i--) {
     if (isColliding(player, largeAsteroids[i])) {
-      player.loseLife();
+      if (!player.isInvincible) {
+        player.loseLife();
+        largeAsteroids.splice(i, 1);
+        break;
+      }
+    }
+  }
+
+  // Bullets and Asteroids
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    for (let j = largeAsteroids.length - 1; j >= 0; j--) {
+      if (isColliding(bullets[i], largeAsteroids[j])) {
+        bullets.splice(i, 1);
+        largeAsteroids.splice(j, 1);
+        break;
+      }
     }
   }
 }
