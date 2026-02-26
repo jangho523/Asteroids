@@ -6,7 +6,7 @@ let score = 0;
 function setup() {
   createCanvas(800, 800);
   player = new Player(createVector(width / 2, height / 2));
-  asteroids = makeAsteroids(30, 50);
+  asteroids = makeAsteroids(20, 50);
 }
 
 function draw() {
@@ -32,6 +32,8 @@ function draw() {
   player.draw();
 
   checkCollisions();
+
+  drawUI();
 }
 
 function makeAsteroids(count, size) {
@@ -107,4 +109,13 @@ function keyPressed() {
   if (keyCode === 32) {
     bullets.push(new Bullet(player.position, player.angle));
   }
+}
+
+function drawUI() {
+  push();
+  textSize(30);
+  fill('red');
+  text('Score: '+ score, width / 2 - 60, 50);
+  text('Lives: '+ player.lives, width / 2 + 150 , 50);
+  pop();
 }
