@@ -10,6 +10,7 @@ function setup() {
 
 function draw() {
   background(0);
+
   player.update();
   player.draw();
 
@@ -24,10 +25,12 @@ function draw() {
   }
 
   for (let i = bullets.length - 1; i >= 0; i--) {
-  if (bullets[i].isDead) {
-    bullets.splice(i, 1);
+    if (bullets[i].isDead) {
+      bullets.splice(i, 1);
+    }
   }
-}
+
+  checkCollisions();
 }
 
 function makeAsteroids(count) {
@@ -39,6 +42,19 @@ function makeAsteroids(count) {
         p5.Vector.random2D(),
       ),
   );
+}
+
+function checkCollisions() {
+  for (let i = 0; i < largeAsteroids.length; i++) {
+    if (isColliding(player, largeAsteroids[i])) {
+      player.loseLife();
+    }
+  }
+}
+
+function isColliding(a, b) {
+  let d = dist(a.position.x, a.position.y, b.position.x, b.position.y);
+  return d < a.size / 2 + b.size / 2;
 }
 
 function keyPressed() {
