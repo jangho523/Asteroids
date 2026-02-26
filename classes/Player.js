@@ -4,7 +4,7 @@ class Player extends BaseActor {
     this.rotateSpeed = 0.1;
     this.angle = 0;
     this.friction = 0.95;
-    this.spaceHeld = false;
+    this.downHeld = false;
   }
 
   update() {
@@ -32,13 +32,13 @@ class Player extends BaseActor {
     }
 
     // HyperJump
-    if (keyIsDown(32) && !this.spaceHeld) {
+    if (keyIsDown(DOWN_ARROW) && !this.downHeld) {
       this.position.x = random(width);
       this.position.y = random(height);
-      this.spaceHeld = true;
+      this.downHeld = true;
     }
-    if (!keyIsDown(32)) {
-      this.spaceHeld = false;
+    if (!keyIsDown(DOWN_ARROW)) {
+      this.downHeld = false;
     }
   }
 

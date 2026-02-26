@@ -1,5 +1,6 @@
 let player;
 let largeAsteroids = [];
+let bullets = [];
 
 function setup() {
   createCanvas(800, 800);
@@ -16,6 +17,17 @@ function draw() {
     asteroid.update();
     asteroid.draw();
   }
+
+  for (let bullet of bullets) {
+    bullet.update();
+    bullet.draw();
+  }
+
+  for (let i = bullets.length - 1; i >= 0; i--) {
+  if (bullets[i].isDead) {
+    bullets.splice(i, 1);
+  }
+}
 }
 
 function makeAsteroids(count) {
@@ -27,4 +39,11 @@ function makeAsteroids(count) {
         p5.Vector.random2D(),
       ),
   );
+}
+
+function keyPressed() {
+  // fire bullets
+  if (keyCode === 32) {
+    bullets.push(new Bullet(player.position, player.angle));
+  }
 }
