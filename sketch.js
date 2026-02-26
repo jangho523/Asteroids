@@ -1,7 +1,12 @@
+p5.disableFriendlyErrors = true;
+
 let player;
 let asteroids = [];
 let bullets = [];
+let saucers = [];
 let score = 0;
+let lastSpawnScore = 0;
+let saucerSpawnInterval;
 
 function setup() {
   createCanvas(800, 800);
@@ -33,6 +38,8 @@ function draw() {
 
   checkCollisions();
 
+  saucerSpawner();
+
   drawUI();
 }
 
@@ -49,9 +56,9 @@ function makeAsteroids(count, size) {
 
 function checkCollisions() {
   // Player and Asteroids
-  for (let i = asteroids.length - 1; i >= 0; i--) {
-    if (isColliding(player, asteroids[i])) {
-      if (!player.isInvincible) {
+  if (!player.isInvincible) {
+    for (let i = asteroids.length - 1; i >= 0; i--) {
+      if (isColliding(player, asteroids[i])) {
         player.loseLife();
         handleAsteroidsHit(i);
         break;
@@ -104,6 +111,8 @@ function handleAsteroidsHit(index) {
   }
 }
 
+function saucerSpawner() {}
+
 function keyPressed() {
   // fire bullets
   if (keyCode === 32) {
@@ -114,8 +123,8 @@ function keyPressed() {
 function drawUI() {
   push();
   textSize(30);
-  fill('red');
-  text('Score: '+ score, width / 2 - 60, 50);
-  text('Lives: '+ player.lives, width / 2 + 150 , 50);
+  fill("red");
+  text("Score: " + score, width / 2 - 60, 50);
+  text("Lives: " + player.lives, width / 2 + 150, 50);
   pop();
 }

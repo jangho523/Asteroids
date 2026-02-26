@@ -32,7 +32,7 @@ class Player extends BaseActor {
     // Acceleration
     if (keyIsDown(UP_ARROW)) {
       let force = p5.Vector.fromAngle(this.angle);
-      force.mult(0.2);
+      force.mult(0.3);
       this.velocity.add(force);
     }
 
@@ -57,7 +57,7 @@ class Player extends BaseActor {
         this.position.x = width / 2;
         this.position.y = height / 2;
         this.velocity.set(0);
-        this.angle = - PI / 2;
+        this.angle = -PI / 2;
       }
 
       if (this.lives == 0) {
