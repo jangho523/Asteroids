@@ -3,7 +3,6 @@ class Player extends BaseActor {
     super(30, position, createVector(0, 0));
     this.rotateSpeed = 0.1;
     this.angle = 0;
-    this.isMoving = false;
     this.friction = 0.95;
     this.spaceHeld = false;
   }
