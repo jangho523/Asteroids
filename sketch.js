@@ -6,7 +6,8 @@ let bullets = [];
 let saucers = [];
 let score = 0;
 let lastSpawnScore = 0;
-let saucerSpawnInterval;
+let saucerSpawnInterval = 1500;
+let hasSaucerSpawned = false;
 
 function setup() {
   createCanvas(800, 800);
@@ -33,12 +34,17 @@ function draw() {
     }
   }
 
+  for (let saucer of saucers) {
+    saucer.update();
+    saucer.draw();
+  }
+
   player.update();
   player.draw();
 
   checkCollisions();
 
-  saucerSpawner();
+  saucerManager();
 
   drawUI();
 }
@@ -61,6 +67,17 @@ function checkCollisions() {
       if (isColliding(player, asteroids[i])) {
         player.loseLife();
         handleAsteroidsHit(i);
+        break;
+      }
+    }
+  }
+
+  // Player and Saucers
+  if (!player.isInvincible) {
+    for (let i = saucers.length - 1; i >= 0; i--) {
+      if (isColliding(player, saucers[i])) {
+        player.loseLife();
+        handleSaucersHit(i);
         break;
       }
     }
@@ -111,7 +128,20 @@ function handleAsteroidsHit(index) {
   }
 }
 
-function saucerSpawner() {}
+function handleSaucersHit(index) {}
+
+function saucerManager() {
+  if (score >= lastSpawnScore + saucerSpawnInterval) {
+    lastSpawnScore += saucerSpawnInterval;
+    saucers.push(
+      new Saucer(
+        50,
+        createVector(random(width), random(height)),
+        createVector(1, 0),
+      ),
+    );
+  }
+}
 
 function keyPressed() {
   // fire bullets
