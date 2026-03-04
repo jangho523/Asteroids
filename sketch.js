@@ -40,8 +40,12 @@ function draw() {
     saucer.draw();
   }
 
-  player.update();
-  player.draw();
+  if (player.isGameOver) {
+    drawGameOverUI();
+  } else {
+    player.update();
+    player.draw();
+  }
 
   checkCollisions();
 
@@ -183,5 +187,13 @@ function drawUI() {
   fill("red");
   text("Score: " + score, width / 2 - 60, 50);
   text("Lives: " + player.lives, width / 2 + 150, 50);
+  pop();
+}
+
+function drawGameOverUI() {
+  push();
+  textSize(50);
+  fill("White");
+  text("GAME OVER", width / 2 - 150, height / 2);
   pop();
 }

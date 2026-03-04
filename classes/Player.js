@@ -8,16 +8,19 @@ class Player extends BaseActor {
     this.lives = 3;
     this.isInvincible = false;
     this.invincibleTimer = 0;
+    this.isGameOver = false;
   }
 
   update() {
-    this.handleInput();
+    if (!this.isGameOver) {
+      this.handleInput();
 
-    this.velocity.mult(this.friction);
+      this.velocity.mult(this.friction);
 
-    super.update();
+      super.update();
 
-    this.calculateInvincibleTime();
+      this.calculateInvincibleTime();
+    }
   }
 
   handleInput() {
@@ -59,10 +62,10 @@ class Player extends BaseActor {
         this.velocity.set(0);
         this.angle = -PI / 2;
       }
+    }
 
-      if (this.lives == 0) {
-        this.death();
-      }
+    if (this.lives == 0) {
+      this.death();
     }
   }
 
@@ -82,6 +85,7 @@ class Player extends BaseActor {
 
   death() {
     console.log("Game Over");
+    this.isGameOver = true;
   }
 
   draw() {
