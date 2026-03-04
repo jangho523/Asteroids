@@ -5,9 +5,10 @@ let asteroids = [];
 let bullets = [];
 let saucers = [];
 let score = 0;
-let lastSpawnScore = 0;
+let lastSpawnSaucerScore = 0;
 let saucerSpawnInterval = 1500;
-let hasSaucerSpawned = false;
+let lastLifeGainScore = 0;
+let extraLifeInterval = 10000;
 
 function setup() {
   createCanvas(800, 800);
@@ -44,7 +45,7 @@ function draw() {
 
   checkCollisions();
 
-  saucerManager();
+  scoreManager();
 
   drawUI();
 }
@@ -130,9 +131,10 @@ function handleAsteroidsHit(index) {
 
 function handleSaucersHit(index) {}
 
-function saucerManager() {
-  if (score >= lastSpawnScore + saucerSpawnInterval) {
-    lastSpawnScore += saucerSpawnInterval;
+function scoreManager() {
+  // Spawn a saucer on every 1,500 score
+  if (score >= lastSpawnSaucerScore + saucerSpawnInterval) {
+    lastSpawnSaucerScore += saucerSpawnInterval;
     saucers.push(
       new Saucer(
         50,
@@ -140,6 +142,12 @@ function saucerManager() {
         createVector(1, 0),
       ),
     );
+  }
+
+  // Gain an extra live on every 10,000 score
+  if (score >= lastLifeGainScore + extraLifeInterval) {
+    lastLifeGainScore += extraLifeInterval;
+    player.gainExtraLife();
   }
 }
 

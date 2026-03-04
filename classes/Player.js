@@ -5,7 +5,7 @@ class Player extends BaseActor {
     this.angle = -PI / 2;
     this.friction = 0.95;
     this.downHeld = false;
-    this.lives = 5;
+    this.lives = 3;
     this.isInvincible = false;
     this.invincibleTimer = 0;
   }
@@ -74,6 +74,10 @@ class Player extends BaseActor {
         this.invincibleTimer = 0;
       }
     }
+  }
+
+  gainExtraLife() {
+    this.lives++;
   }
 
   death() {
