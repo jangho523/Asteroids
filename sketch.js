@@ -14,6 +14,7 @@ let gameLevel = 1;
 let startAsteroidsNumber = 1;
 let saucerFireTimer = 0;
 let saucerFireInterval = 0.5;
+let saucerAimOffset = 0;
 
 function setup() {
   createCanvas(800, 800);
@@ -21,7 +22,7 @@ function setup() {
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
   saucers.push(
     new Saucer(
-      50,
+      30,
       createVector(random(width), random(height)),
       createVector(1, 0),
     ),
@@ -214,7 +215,10 @@ function saucerFireBullets() {
       let dy = player.position.y - saucer.position.y;
       let dx = player.position.x - saucer.position.x;
       let angle = atan2(dy, dx);
-      saucerBullets.push(new Bullet(saucer.position, angle));
+      saucer.type == "large"
+        ? (saucerAimOffset = random(-1, 1))
+        : (saucerAimOffset = random(-0.3, 0.3));
+      saucerBullets.push(new Bullet(saucer.position, angle + saucerAimOffset));
     }
   }
 }
