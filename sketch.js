@@ -4,18 +4,28 @@ let player;
 let asteroids = [];
 let bullets = [];
 let saucers = [];
+let saucerBullets = [];
 let score = 0;
 let lastSpawnSaucerScore = 0;
 let saucerSpawnInterval = 1500;
 let lastLifeGainScore = 0;
 let extraLifeInterval = 10000;
 let gameLevel = 1;
-let startAsteroidsNumber = 10;
+let startAsteroidsNumber = 1;
+let saucerFireTimer = 0;
+let saucerFireInterval = 0.5;
 
 function setup() {
   createCanvas(800, 800);
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
+  saucers.push(
+    new Saucer(
+      50,
+      createVector(random(width), random(height)),
+      createVector(1, 0),
+    ),
+  );
 }
 
 function draw() {
@@ -26,15 +36,26 @@ function draw() {
     bullet.draw();
   }
 
-  for (let asteroid of asteroids) {
-    asteroid.update();
-    asteroid.draw();
-  }
-
   for (let i = bullets.length - 1; i >= 0; i--) {
     if (bullets[i].isDead) {
       bullets.splice(i, 1);
     }
+  }
+
+  for (let saucerBullet of saucerBullets) {
+    saucerBullet.update();
+    saucerBullet.draw();
+  }
+
+  for (let i = saucerBullets.length - 1; i >= 0; i--) {
+    if (saucerBullets[i].isDead) {
+      saucerBullets.splice(i, 1);
+    }
+  }
+
+  for (let asteroid of asteroids) {
+    asteroid.update();
+    asteroid.draw();
   }
 
   for (let saucer of saucers) {
@@ -53,6 +74,8 @@ function draw() {
     asteroids = makeAsteroids(startAsteroidsNumber + gameLevel * 2, 50);
     gameLevel++;
   }
+
+  saucerFireBullets();
 
   checkCollisions();
 
@@ -158,6 +181,19 @@ function handleSaucersHit(index) {
   } else if (saucers[index].type == "small") {
     score += 1000;
     saucers.splice(index, 1);
+  }
+}
+
+function saucerFireBullets() {
+  for (let saucer of saucers) {
+    saucerFireTimer += deltaTime / 1000;
+    if (saucerFireTimer >= saucerFireInterval) {
+      saucerFireTimer = 0;
+      let dy = player.position.y - saucer.position.y;
+      let dx = player.position.x - saucer.position.x;
+      let angle = atan2(dy, dx);
+      saucerBullets.push(new Bullet(saucer.position, angle));
+    }
   }
 }
 
