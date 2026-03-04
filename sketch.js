@@ -118,6 +118,17 @@ function checkCollisions() {
     }
   }
 
+  // Player and Saucers
+  if (!player.isInvincible) {
+    for (let i = saucerBullets.length - 1; i >= 0; i--) {
+      if (isColliding(player, saucerBullets[i])) {
+        player.loseLife();
+        saucerBullets.splice(i, 1);
+        break;
+      }
+    }
+  }
+
   // Bullets and Asteroids
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = asteroids.length - 1; j >= 0; j--) {
@@ -125,6 +136,17 @@ function checkCollisions() {
         handleAsteroidsHit(j, true);
         bullets.splice(i, 1);
         console.log("score: ", score);
+        break;
+      }
+    }
+  }
+
+  // SaucerBullets and Asteroids
+  for (let i = saucerBullets.length - 1; i >= 0; i--) {
+    for (let j = asteroids.length - 1; j >= 0; j--) {
+      if (isColliding(saucerBullets[i], asteroids[j])) {
+        handleAsteroidsHit(j, false);
+        saucerBullets.splice(i, 1);
         break;
       }
     }
