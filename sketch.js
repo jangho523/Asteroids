@@ -67,7 +67,7 @@ function checkCollisions() {
     for (let i = asteroids.length - 1; i >= 0; i--) {
       if (isColliding(player, asteroids[i])) {
         player.loseLife();
-        handleAsteroidsHit(i);
+        handleAsteroidsHit(i, true);
         break;
       }
     }
@@ -88,9 +88,20 @@ function checkCollisions() {
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = asteroids.length - 1; j >= 0; j--) {
       if (isColliding(bullets[i], asteroids[j])) {
-        handleAsteroidsHit(j);
+        handleAsteroidsHit(j, true);
         bullets.splice(i, 1);
         console.log("score: ", score);
+        break;
+      }
+    }
+  }
+
+  // Saucers and Asteroids
+  for (let i = saucers.length - 1; i >= 0; i--) {
+    for (let j = asteroids.length - 1; j >= 0; j--) {
+      if (isColliding(saucers[i], asteroids[j])) {
+        handleAsteroidsHit(j, false);
+        saucers.splice(i, 1);
         break;
       }
     }
@@ -102,9 +113,9 @@ function isColliding(a, b) {
   return d < a.size / 2 + b.size / 2;
 }
 
-function handleAsteroidsHit(index) {
+function handleAsteroidsHit(index, killedByPlayer) {
   if (asteroids[index].type == "large") {
-    score += 20;
+    killedByPlayer ? (score += 20) : (score += 0);
     let hitPos = asteroids[index].position.copy();
     asteroids.splice(index, 1);
     asteroids.push(
@@ -114,7 +125,7 @@ function handleAsteroidsHit(index) {
       new Asteroid(35, hitPos.copy(), p5.Vector.random2D().mult(2)),
     );
   } else if (asteroids[index].type == "medium") {
-    score += 50;
+    killedByPlayer ? (score += 50) : (score += 0);
     let hitPos = asteroids[index].position.copy();
     asteroids.splice(index, 1);
     asteroids.push(
@@ -124,15 +135,23 @@ function handleAsteroidsHit(index) {
       new Asteroid(25, hitPos.copy(), p5.Vector.random2D().mult(3.5)),
     );
   } else if (asteroids[index].type == "small") {
-    score += 100;
+    killedByPlayer ? (score += 100) : (score += 0);
     asteroids.splice(index, 1);
   }
 }
 
-function handleSaucersHit(index) {}
+function handleSaucersHit(index) {
+  if (saucers[index].type == "large") {
+    score += 200;
+    saucers.splice(index, 1);
+  } else if (saucers[index].type == "small") {
+    score += 1000;
+    saucers.splice(index, 1);
+  }
+}
 
 function scoreManager() {
-  // Spawn a saucer on every 1,500 score
+  // Spawn a saucer for every 1,500 score
   if (score >= lastSpawnSaucerScore + saucerSpawnInterval) {
     lastSpawnSaucerScore += saucerSpawnInterval;
     saucers.push(
@@ -144,7 +163,7 @@ function scoreManager() {
     );
   }
 
-  // Gain an extra live on every 10,000 score
+  // Gain an extra live for every 10,000 score
   if (score >= lastLifeGainScore + extraLifeInterval) {
     lastLifeGainScore += extraLifeInterval;
     player.gainExtraLife();
