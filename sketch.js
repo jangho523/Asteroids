@@ -9,11 +9,13 @@ let lastSpawnSaucerScore = 0;
 let saucerSpawnInterval = 1500;
 let lastLifeGainScore = 0;
 let extraLifeInterval = 10000;
+let gameLevel = 1;
+let startAsteroidsNumber = 10;
 
 function setup() {
   createCanvas(800, 800);
   player = new Player(createVector(width / 2, height / 2));
-  asteroids = makeAsteroids(20, 50);
+  asteroids = makeAsteroids(startAsteroidsNumber, 50);
 }
 
 function draw() {
@@ -45,6 +47,11 @@ function draw() {
   } else {
     player.update();
     player.draw();
+  }
+
+  if (asteroids.length == 0) {
+    asteroids = makeAsteroids(startAsteroidsNumber + gameLevel * 2, 50);
+    gameLevel++;
   }
 
   checkCollisions();
