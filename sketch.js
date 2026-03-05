@@ -136,6 +136,18 @@ function checkCollisions() {
     }
   }
 
+  // Bullets and Saucers
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    for (let j = saucers.length - 1; j >= 0; j--) {
+      if (isColliding(bullets[i], saucers[j])) {
+        handleSaucersHit(j, true);
+        bullets.splice(i, 1);
+        console.log("score: ", score);
+        break;
+      }
+    }
+  }
+
   // SaucerBullets and Asteroids
   for (let i = saucerBullets.length - 1; i >= 0; i--) {
     for (let j = asteroids.length - 1; j >= 0; j--) {
