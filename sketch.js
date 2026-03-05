@@ -11,7 +11,7 @@ let saucerSpawnInterval = 1500;
 let lastLifeGainScore = 0;
 let extraLifeInterval = 10000;
 let gameLevel = 1;
-let startAsteroidsNumber = 1;
+let startAsteroidsNumber = 8;
 let saucerFireTimer = 0;
 let saucerFireInterval = 0.5;
 let saucerAimOffset = 0;
@@ -20,13 +20,6 @@ function setup() {
   createCanvas(800, 800);
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
-  saucers.push(
-    new Saucer(
-      30,
-      createVector(random(width), random(height)),
-      createVector(1, 0),
-    ),
-  );
 }
 
 function draw() {
@@ -45,7 +38,7 @@ function draw() {
 
   for (let saucerBullet of saucerBullets) {
     saucerBullet.update();
-    saucerBullet.draw();
+    saucerBullet.draw(true);
   }
 
   for (let i = saucerBullets.length - 1; i >= 0; i--) {
@@ -71,6 +64,7 @@ function draw() {
     player.draw();
   }
 
+  // level system: when all asteroids are cleared, spawn a new wave with a few extra asteroids
   if (asteroids.length == 0) {
     asteroids = makeAsteroids(startAsteroidsNumber + gameLevel * 2, 50);
     gameLevel++;
@@ -176,20 +170,20 @@ function handleAsteroidsHit(index, killedByPlayer) {
     let hitPos = asteroids[index].position.copy();
     asteroids.splice(index, 1);
     asteroids.push(
-      new Asteroid(35, hitPos.copy(), p5.Vector.random2D().mult(2)),
+      new Asteroid(35, hitPos.copy(), p5.Vector.random2D().mult(1.5)),
     );
     asteroids.push(
-      new Asteroid(35, hitPos.copy(), p5.Vector.random2D().mult(2)),
+      new Asteroid(35, hitPos.copy(), p5.Vector.random2D().mult(1.5)),
     );
   } else if (asteroids[index].type == "medium") {
     killedByPlayer ? (score += 50) : (score += 0);
     let hitPos = asteroids[index].position.copy();
     asteroids.splice(index, 1);
     asteroids.push(
-      new Asteroid(25, hitPos.copy(), p5.Vector.random2D().mult(3.5)),
+      new Asteroid(25, hitPos.copy(), p5.Vector.random2D().mult(2)),
     );
     asteroids.push(
-      new Asteroid(25, hitPos.copy(), p5.Vector.random2D().mult(3.5)),
+      new Asteroid(25, hitPos.copy(), p5.Vector.random2D().mult(2)),
     );
   } else if (asteroids[index].type == "small") {
     killedByPlayer ? (score += 100) : (score += 0);
@@ -227,11 +221,13 @@ function scoreManager() {
   // Spawn a saucer for every 1,500 score
   if (score >= lastSpawnSaucerScore + saucerSpawnInterval) {
     lastSpawnSaucerScore += saucerSpawnInterval;
+    let randomSaucerSize = random() < 0.8 ? 50 : 30;
+    let randomX = random() < 0.5 ? -2 : 2;
     saucers.push(
       new Saucer(
-        50,
-        createVector(random(width), random(height)),
-        createVector(1, 0),
+        randomSaucerSize,
+        createVector(0, random(height)),
+        createVector(randomX, 0),
       ),
     );
   }
@@ -245,8 +241,10 @@ function scoreManager() {
 
 function keyPressed() {
   // fire bullets
-  if (keyCode === 32) {
-    bullets.push(new Bullet(player.position, player.angle));
+  if (!player.isGameOver) {
+    if (keyCode === 32) {
+      bullets.push(new Bullet(player.position, player.angle));
+    }
   }
 }
 

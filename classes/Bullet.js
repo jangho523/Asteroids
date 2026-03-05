@@ -1,6 +1,10 @@
 class Bullet extends BaseActor {
   constructor(position, angle) {
-    super(5, createVector(position.x, position.y), p5.Vector.fromAngle(angle).mult(8));
+    super(
+      5,
+      createVector(position.x, position.y),
+      p5.Vector.fromAngle(angle).mult(8),
+    );
     this.lifeSpan = 1.5;
     this.isDead = false;
   }
@@ -14,7 +18,12 @@ class Bullet extends BaseActor {
     }
   }
 
-  draw() {
+  draw(isSaucerBullet) {
+    push();
+    if (isSaucerBullet) {
+      fill("orange");
+    }
     circle(this.position.x, this.position.y, this.size);
+    pop();
   }
 }
