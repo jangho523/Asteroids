@@ -57,6 +57,7 @@ function draw() {
     saucer.draw();
   }
 
+  // game ends when the player loses all their lives
   if (player.isGameOver) {
     drawGameOverUI();
   } else {
@@ -113,7 +114,7 @@ function checkCollisions() {
     }
   }
 
-  // Player and Saucers
+  // Player and Saucerbullets
   if (!player.isInvincible) {
     for (let i = saucerBullets.length - 1; i >= 0; i--) {
       if (isColliding(player, saucerBullets[i])) {
@@ -124,7 +125,7 @@ function checkCollisions() {
     }
   }
 
-  // Bullets and Asteroids
+  // Playerbullets and Asteroids
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = asteroids.length - 1; j >= 0; j--) {
       if (isColliding(bullets[i], asteroids[j])) {
@@ -136,7 +137,7 @@ function checkCollisions() {
     }
   }
 
-  // Bullets and Saucers
+  // playerbullets and Saucers
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = saucers.length - 1; j >= 0; j--) {
       if (isColliding(bullets[i], saucers[j])) {
@@ -221,9 +222,15 @@ function saucerFireBullets() {
       let dy = player.position.y - saucer.position.y;
       let dx = player.position.x - saucer.position.x;
       let angle = atan2(dy, dx);
+
+      // small saucers' aim gets better when score increases
+      let aimRange = 0.3 - score / 50000;
+      if (aimRange < 0) {
+        aimRange = 0;
+      }
       saucer.type == "large"
         ? (saucerAimOffset = random(-1, 1))
-        : (saucerAimOffset = random(-0.3, 0.3));
+        : (saucerAimOffset = random(-aimRange, aimRange));
       saucerBullets.push(new Bullet(saucer.position, angle + saucerAimOffset));
     }
   }

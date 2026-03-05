@@ -26,6 +26,7 @@ class Saucer extends BaseActor {
 
     // y movement
     if (!this.yMoving) {
+      // they move up or down
       if (this.yMoveTimer >= this.yPauseDuration) {
         this.yMoving = true;
         this.yMoveTimer = 0;
@@ -33,6 +34,7 @@ class Saucer extends BaseActor {
         this.velocity.y = random(-3, 3);
       }
     } else {
+      // they move straight
       if (this.yMoveTimer >= this.yMoveDuration) {
         this.yMoving = false;
         this.yMoveTimer = 0;
