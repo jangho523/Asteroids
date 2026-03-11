@@ -69,6 +69,8 @@ class Player extends BaseActor {
     }
   }
 
+  bulletKnockback() {}
+
   calculateInvincibleTime() {
     if (this.isInvincible) {
       this.invincibleTimer += deltaTime / 1000;

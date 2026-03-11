@@ -15,6 +15,9 @@ let startAsteroidsNumber = 8;
 let saucerFireTimer = 0;
 let saucerFireInterval = 0.5;
 let saucerAimOffset = 0;
+let screenShakeDuration = 0.5;
+let shakeIntensity = 5;
+let isShaking = false;
 
 function setup() {
   createCanvas(800, 800);
@@ -24,6 +27,10 @@ function setup() {
 
 function draw() {
   background(0);
+
+  if (isShaking) {
+    screenShake();
+  }
 
   for (let bullet of bullets) {
     bullet.update();
@@ -98,6 +105,7 @@ function checkCollisions() {
       if (isColliding(player, asteroids[i])) {
         player.loseLife();
         handleAsteroidsHit(i, true);
+        isShaking = true;
         break;
       }
     }
@@ -109,6 +117,7 @@ function checkCollisions() {
       if (isColliding(player, saucers[i])) {
         player.loseLife();
         handleSaucersHit(i);
+        isShaking = true;
         break;
       }
     }
@@ -120,6 +129,7 @@ function checkCollisions() {
       if (isColliding(player, saucerBullets[i])) {
         player.loseLife();
         saucerBullets.splice(i, 1);
+        isShaking = true;
         break;
       }
     }
@@ -267,6 +277,19 @@ function keyPressed() {
   }
 }
 
+function screenShake() {
+  screenShakeDuration -= deltaTime / 1000;
+  if (screenShakeDuration >= 0) {
+    let offsetX = (Math.random() - 0.5) * shakeIntensity;
+    let offsetY = (Math.random() - 0.5) * shakeIntensity;
+    translate(offsetX, offsetY);
+  } else {
+    translate(0, 0);
+    screenShakeDuration = 0.3;
+    isShaking = false;
+  }
+}
+
 function drawUI() {
   push();
   textSize(30);
@@ -279,7 +302,7 @@ function drawUI() {
 function drawGameOverUI() {
   push();
   textSize(50);
-  fill("White");
+  fill("Grey");
   text("GAME OVER", width / 2 - 150, height / 2);
   pop();
 }
