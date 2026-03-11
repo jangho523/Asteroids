@@ -19,6 +19,8 @@ let screenShakeDuration = 0.5;
 let shakeIntensity = 5;
 let isShaking = false;
 
+let hasStarted = false;
+
 function setup() {
   createCanvas(800, 800);
   player = new Player(createVector(width / 2, height / 2));
@@ -28,41 +30,21 @@ function setup() {
 function draw() {
   background(0);
 
+  if (!hasStarted) {
+    asteroidsManager();
+    drawMainMenu();
+    return;
+  }
+
   if (isShaking) {
     screenShake();
   }
 
-  for (let bullet of bullets) {
-    bullet.update();
-    bullet.draw();
-  }
+  bulletsManager();
 
-  for (let i = bullets.length - 1; i >= 0; i--) {
-    if (bullets[i].isDead) {
-      bullets.splice(i, 1);
-    }
-  }
+  asteroidsManager();
 
-  for (let saucerBullet of saucerBullets) {
-    saucerBullet.update();
-    saucerBullet.draw(true);
-  }
-
-  for (let i = saucerBullets.length - 1; i >= 0; i--) {
-    if (saucerBullets[i].isDead) {
-      saucerBullets.splice(i, 1);
-    }
-  }
-
-  for (let asteroid of asteroids) {
-    asteroid.update();
-    asteroid.draw();
-  }
-
-  for (let saucer of saucers) {
-    saucer.update();
-    saucer.draw();
-  }
+  saucersManager();
 
   // game ends when the player loses all their lives
   if (player.isGameOver) {
@@ -72,11 +54,7 @@ function draw() {
     player.draw();
   }
 
-  // level system: when all asteroids are cleared, spawn a new wave with a few extra asteroids
-  if (asteroids.length == 0) {
-    asteroids = makeAsteroids(startAsteroidsNumber + gameLevel * 2, 50);
-    gameLevel++;
-  }
+  levelManager();
 
   saucerFireBullets();
 
@@ -288,6 +266,60 @@ function screenShake() {
     screenShakeDuration = 0.3;
     isShaking = false;
   }
+}
+
+function bulletsManager() {
+  for (let bullet of bullets) {
+    bullet.update();
+    bullet.draw();
+  }
+
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    if (bullets[i].isDead) {
+      bullets.splice(i, 1);
+    }
+  }
+
+  for (let saucerBullet of saucerBullets) {
+    saucerBullet.update();
+    saucerBullet.draw(true);
+  }
+
+  for (let i = saucerBullets.length - 1; i >= 0; i--) {
+    if (saucerBullets[i].isDead) {
+      saucerBullets.splice(i, 1);
+    }
+  }
+}
+
+function asteroidsManager() {
+  for (let asteroid of asteroids) {
+    asteroid.update();
+    asteroid.draw();
+  }
+}
+
+function saucersManager() {
+  for (let saucer of saucers) {
+    saucer.update();
+    saucer.draw();
+  }
+}
+
+function levelManager() {
+  // level system: when all asteroids are cleared, spawn a new wave with a few extra asteroids
+  if (asteroids.length == 0) {
+    asteroids = makeAsteroids(startAsteroidsNumber + gameLevel * 2, 50);
+    gameLevel++;
+  }
+}
+
+function drawMainMenu() {
+  push();
+  textSize(50);
+  fill("Grey");
+  text("Asteroid", width / 2 - 150, height / 2);
+  pop();
 }
 
 function drawUI() {
