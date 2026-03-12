@@ -1,46 +1,53 @@
 p5.disableFriendlyErrors = true;
 
+// Game Setting valuables
+let gameState;
+let score = 0;
+let gameLevel = 1;
+let startAsteroidsNumber = 6;
+let leaderboardScores = [];
+let lastSpawnSaucerScore = 0;
+let saucerSpawnInterval = 1500;
+let lastLifeGainScore = 0;
+let extraLifeInterval = 10000;
+
+// Object valuables
 let player;
 let asteroids = [];
 let bullets = [];
 let saucers = [];
 let saucerBullets = [];
-let score = 0;
-let lastSpawnSaucerScore = 0;
-let saucerSpawnInterval = 1500;
-let lastLifeGainScore = 0;
-let extraLifeInterval = 10000;
-let gameLevel = 1;
-let startAsteroidsNumber = 6;
+
+// Saucer shooting valuables
 let saucerFireTimer = 0;
 let saucerFireInterval = 0.5;
 let saucerAimOffset = 0;
+let saucerPredictAimScore = 15000;
+
+// Screen shake valuables
 let screenShakeDuration = 0.5;
 let shakeIntensity = 5;
 let isShaking = false;
-let gameState;
-let leaderboardScores = [];
+
+// Buttons
 let playButton = {
   x: 300,
   y: 450,
   w: 200,
   h: 60,
 };
-
 let restartButton = {
   x: 180,
   y: 500,
   w: 200,
   h: 50,
 };
-
 let lbButtonOnMainmenu = {
   x: 300,
   y: 550,
   w: 200,
   h: 60,
 };
-
 let lbButtonOnGameover = {
   x: 430,
   y: 500,
@@ -53,6 +60,10 @@ function setup() {
   gameState = "mainmenu";
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
+
+  // saucers.push(
+  //   new Saucer(30, createVector(0, random(height)), createVector(1, 0)),
+  // );
 }
 
 function draw() {
@@ -211,19 +222,35 @@ function saucerFireBullets() {
     saucerFireTimer += deltaTime / 1000;
     if (saucerFireTimer >= saucerFireInterval) {
       saucerFireTimer = 0;
-      let dy = player.position.y - saucer.position.y;
-      let dx = player.position.x - saucer.position.x;
+      let targetX = player.position.x;
+      let targetY = player.position.y;
+
+      let isSaucerPredictAimOn = false;
+      // small saucer predict aim mode
+      if (saucer.type == "small" && score >= saucerPredictAimScore) {
+        isSaucerPredictAimOn = true;
+        targetX = player.position.x + player.velocity.x * 40;
+        targetY = player.position.y + player.velocity.y * 40;
+        saucerAimOffset = 0;
+      }
+
+      let dx = targetX - saucer.position.x;
+      let dy = targetY - saucer.position.y;
       let angle = atan2(dy, dx);
 
-      // small saucers' aim gets better when score increases
-      let aimRange = 0.3 - score / 50000;
-      if (aimRange < 0) {
-        aimRange = 0;
+      if (saucer.type == "large") {
+        saucerAimOffset = random(-1, 1);
+      } else {
+        //small saucers' aim gets better when score increases
+        if (!isSaucerPredictAimOn) {
+          let aimRange = 0.3 - score / 50000;
+          if (aimRange < 0) {
+            aimRange = 0;
+          }
+          saucerAimOffset = random(-aimRange, aimRange);
+        }
       }
-      saucer.type == "large"
-        ? (saucerAimOffset = random(-1, 1))
-        : (saucerAimOffset = random(-aimRange, aimRange));
-      saucerBullets.push(new Bullet(saucer.position, angle + saucerAimOffset));
+      saucerBullets.push(new Bullet(saucer.position.copy(), angle + saucerAimOffset));
     }
   }
 }
@@ -467,7 +494,7 @@ function drawGameOverUI() {
   fill("Grey");
   text("GAME OVER", width / 2, height / 2 - 60);
   textSize(40);
-  text("Your Score: "+ score, width /2, height /2 + 20);
+  text("Your Score: " + score, width / 2, height / 2 + 20);
   if (
     mouseX > restartButton.x &&
     mouseX < restartButton.x + restartButton.w &&
@@ -500,7 +527,11 @@ function drawGameOverUI() {
   );
 
   fill("black");
-  text("Restart", restartButton.x + 100, restartButton.y + restartButton.h - 14);
+  text(
+    "Restart",
+    restartButton.x + 100,
+    restartButton.y + restartButton.h - 14,
+  );
 
   fill("black");
   text(
