@@ -11,7 +11,7 @@ let saucerSpawnInterval = 1500;
 let lastLifeGainScore = 0;
 let extraLifeInterval = 10000;
 let gameLevel = 1;
-let startAsteroidsNumber = 8;
+let startAsteroidsNumber = 6;
 let saucerFireTimer = 0;
 let saucerFireInterval = 0.5;
 let saucerAimOffset = 0;
@@ -19,6 +19,7 @@ let screenShakeDuration = 0.5;
 let shakeIntensity = 5;
 let isShaking = false;
 let gameState;
+let leaderboardScores = [];
 let playButton = {
   x: 300,
   y: 450,
@@ -27,16 +28,29 @@ let playButton = {
 };
 
 let restartButton = {
-  x: 200,
+  x: 180,
   y: 500,
-  w: 150,
-  h: 40,
+  w: 200,
+  h: 50,
 };
 
+let lbButtonOnMainmenu = {
+  x: 300,
+  y: 550,
+  w: 200,
+  h: 60,
+};
+
+let lbButtonOnGameover = {
+  x: 430,
+  y: 500,
+  w: 200,
+  h: 50,
+};
 
 function setup() {
   createCanvas(800, 800);
-  gameState = "gameover";
+  gameState = "mainmenu";
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
 }
@@ -51,6 +65,7 @@ function draw() {
   } else if (gameState == "gameover") {
     drawGameOverUI();
   } else if (gameState == "leaderboard") {
+    drawLeaderboard();
   }
 }
 
@@ -235,16 +250,6 @@ function scoreManager() {
   }
 }
 
-function keyPressed() {
-  // fire bullets
-  if (!player.isGameOver) {
-    if (keyCode === 32) {
-      bullets.push(new Bullet(player.position, player.angle));
-      player.bulletKnockback();
-    }
-  }
-}
-
 function screenShake() {
   screenShakeDuration -= deltaTime / 1000;
   if (screenShakeDuration >= 0) {
@@ -302,8 +307,8 @@ function objectManager() {
   player.draw();
 
   // Check if player is dead
-  if(player.isGameOver)
-  {
+  if (player.isGameOver && gameState !== "gameover") {
+    leaderboardScores.push(score);
     gameState = "gameover";
   }
 }
@@ -316,6 +321,21 @@ function levelManager() {
   }
 }
 
+function keyPressed() {
+  // fire bullets
+  if (gameState == "playing") {
+    if (keyCode === 32) {
+      bullets.push(new Bullet(player.position, player.angle));
+      player.bulletKnockback();
+    }
+  } else if (gameState == "leaderboard") {
+    if (keyCode === 32) {
+      resetGame();
+      gameState = "mainmenu";
+    }
+  }
+}
+
 function mousePressed() {
   if (gameState == "mainmenu") {
     if (
@@ -325,10 +345,15 @@ function mousePressed() {
       mouseY < playButton.y + playButton.h
     ) {
       gameState = "playing";
+    } else if (
+      mouseX > lbButtonOnMainmenu.x &&
+      mouseX < lbButtonOnMainmenu.x + lbButtonOnMainmenu.w &&
+      mouseY > lbButtonOnMainmenu.y &&
+      mouseY < lbButtonOnMainmenu.y + lbButtonOnMainmenu.h
+    ) {
+      gameState = "leaderboard";
     }
-  }
-
-    else if (gameState == "gameover") {
+  } else if (gameState == "gameover") {
     if (
       mouseX > restartButton.x &&
       mouseX < restartButton.x + restartButton.w &&
@@ -336,6 +361,15 @@ function mousePressed() {
       mouseY < restartButton.y + restartButton.h
     ) {
       resetGame();
+      gameState = "playing";
+    } else if (
+      mouseX > lbButtonOnGameover.x &&
+      mouseX < lbButtonOnGameover.x + lbButtonOnGameover.w &&
+      mouseY > lbButtonOnGameover.y &&
+      mouseY < lbButtonOnGameover.y + lbButtonOnGameover.h
+    ) {
+      calculateLeaderboard();
+      gameState = "leaderboard";
     }
   }
 }
@@ -364,10 +398,11 @@ function drawMainMenu() {
     asteroid.update();
     asteroid.draw();
   }
+  textAlign(CENTER);
   textSize(100);
   fill("Grey");
-  text("ASTEROIDS", width / 2 - 250, height / 2 - 100);
-  
+  text("ASTEROIDS", width / 2, height / 2 - 100);
+
   // Change button color if mouse hovers on the play button
   if (
     mouseX > playButton.x &&
@@ -376,16 +411,42 @@ function drawMainMenu() {
     mouseY < playButton.y + playButton.h
   ) {
     fill("lightgrey");
-  }
-  else
-  {
+  } else {
     fill("grey");
   }
 
   rect(playButton.x, playButton.y, playButton.w, playButton.h, 10);
   textSize(50);
   fill("Black");
-  text("PLAY", width / 2 - 60, height / 2 + 97);
+  text("PLAY", width / 2, height / 2 + 97);
+
+  if (
+    mouseX > lbButtonOnMainmenu.x &&
+    mouseX < lbButtonOnMainmenu.x + lbButtonOnMainmenu.w &&
+    mouseY > lbButtonOnMainmenu.y &&
+    mouseY < lbButtonOnMainmenu.y + lbButtonOnMainmenu.h
+  ) {
+    fill("lightgrey");
+  } else {
+    fill("grey");
+  }
+
+  rect(
+    lbButtonOnMainmenu.x,
+    lbButtonOnMainmenu.y,
+    lbButtonOnMainmenu.w,
+    lbButtonOnMainmenu.h,
+    10,
+  );
+  fill("Black");
+  textSize(25);
+  text("LEADERBOARD", width / 2, height / 2 + 190);
+
+  textSize(20);
+  fill("grey");
+  textAlign(RIGHT, BOTTOM);
+  text("By Jangho Son", width - 20, height - 20);
+
   pop();
 }
 
@@ -399,11 +460,15 @@ function drawUI() {
 }
 
 function drawGameOverUI() {
+  drawGameOverObject();
+
   push();
   textSize(80);
+  textAlign(CENTER);
   fill("Grey");
-  text("GAME OVER", width / 2 - 200, height / 2 - 60);
-
+  text("GAME OVER", width / 2, height / 2 - 60);
+  textSize(40);
+  text("Your Score: "+ score, width /2, height /2 + 20);
   if (
     mouseX > restartButton.x &&
     mouseX < restartButton.x + restartButton.w &&
@@ -411,25 +476,116 @@ function drawGameOverUI() {
     mouseY < restartButton.y + restartButton.h
   ) {
     fill("lightgrey");
-  }
-  else
-  {
+  } else {
     fill("grey");
   }
-  rect(restartButton.x, restartButton.y,restartButton.w,restartButton.h, 10);
+  rect(restartButton.x, restartButton.y, restartButton.w, restartButton.h, 10);
+
+  if (
+    mouseX > lbButtonOnGameover.x &&
+    mouseX < lbButtonOnGameover.x + lbButtonOnGameover.w &&
+    mouseY > lbButtonOnGameover.y &&
+    mouseY < lbButtonOnGameover.y + lbButtonOnGameover.h
+  ) {
+    fill("lightgrey");
+  } else {
+    fill("grey");
+  }
   textSize(32);
+  rect(
+    lbButtonOnGameover.x,
+    lbButtonOnGameover.y,
+    lbButtonOnGameover.w,
+    lbButtonOnGameover.h,
+    10,
+  );
+
   fill("black");
-  text("Restart", restartButton.x + 20, restartButton.y + restartButton.h - 10);
+  text("Restart", restartButton.x + 100, restartButton.y + restartButton.h - 14);
+
+  fill("black");
+  text(
+    "Leaderboard",
+    lbButtonOnGameover.x + 100,
+    lbButtonOnGameover.y + lbButtonOnGameover.h - 14,
+  );
 
   pop();
 }
 
-function resetGame(){
+function drawLeaderboard() {
+  drawGameOverObject();
+  push();
+  textAlign(CENTER, CENTER);
+  textSize(50);
+  fill("Grey");
+  text("LEADERBOARD", width / 2, height / 2 - 250);
+
+  textAlign(LEFT, BASELINE);
+  textSize(30);
+  text("1. ", width / 2 - 180, height / 2 - 100);
+  text(leaderboardScores[0], width / 2 - 130, height / 2 - 100);
+  text("2. ", width / 2 - 180, height / 2 - 50);
+  text(leaderboardScores[1], width / 2 - 130, height / 2 - 50);
+  text("3. ", width / 2 - 180, height / 2);
+  text(leaderboardScores[2], width / 2 - 130, height / 2);
+  text("4. ", width / 2 - 180, height / 2 + 50);
+  text(leaderboardScores[3], width / 2 - 130, height / 2 + 50);
+  text("5. ", width / 2 - 180, height / 2 + 100);
+  text(leaderboardScores[4], width / 2 - 130, height / 2 + 100);
+
+  textAlign(CENTER, CENTER);
+  textSize(30);
+  text("PRESS SPACE FOR MAINMENU", width / 2, height / 2 + 250);
+  pop();
+}
+
+function drawGameOverObject() {
+  if (isShaking) {
+    screenShake();
+  }
+  // Update and draw Saucers' bullets
+  for (let saucerBullet of saucerBullets) {
+    saucerBullet.update();
+    saucerBullet.draw(true);
+  }
+
+  // Remove Saucers' bullets if their lifespan is over or they are collided
+  for (let i = saucerBullets.length - 1; i >= 0; i--) {
+    if (saucerBullets[i].isDead) {
+      saucerBullets.splice(i, 1);
+    }
+  }
+
+  // Update and draw Asteroids
+  for (let asteroid of asteroids) {
+    asteroid.update();
+    asteroid.draw();
+  }
+
+  // Update and draw Saucers
+  for (let saucer of saucers) {
+    saucer.update();
+    saucer.draw();
+  }
+}
+
+function calculateLeaderboard() {
+  leaderboardScores.sort((a, b) => b - a);
+  leaderboardScores = leaderboardScores.slice(0, 5);
+}
+
+function resetGame() {
+  gameLevel = 1;
+  lastSpawnSaucerScore = 0;
+  lastLifeGainScore = 0;
+  saucerFireTimer = 0;
   isShaking = false;
   player.isGameOver = false;
   player.lives = 3;
   score = 0;
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
-
-  gameState = "playing";
+  bullets = [];
+  saucers = [];
+  saucerBullets = [];
 }
