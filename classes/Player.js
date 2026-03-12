@@ -6,7 +6,7 @@ class Player extends BaseActor {
     this.friction = 0.95;
     this.downHeld = false;
     this.lives = 3;
-    this.isInvincible = false;
+    this.isInvincible = true;
     this.invincibleTimer = 0;
     this.isGameOver = false;
   }

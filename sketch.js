@@ -18,11 +18,17 @@ let saucerAimOffset = 0;
 let screenShakeDuration = 0.5;
 let shakeIntensity = 5;
 let isShaking = false;
-
-let hasStarted = false;
+let gameState;
+let playButton = {
+  x: 300,
+  y: 450,
+  w: 200,
+  h: 60,
+};
 
 function setup() {
   createCanvas(800, 800);
+  gameState = "mainmenu";
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
 }
@@ -30,39 +36,14 @@ function setup() {
 function draw() {
   background(0);
 
-  if (!hasStarted) {
-    asteroidsManager();
+  if (gameState == "mainmenu") {
     drawMainMenu();
-    return;
-  }
-
-  if (isShaking) {
-    screenShake();
-  }
-
-  bulletsManager();
-
-  asteroidsManager();
-
-  saucersManager();
-
-  // game ends when the player loses all their lives
-  if (player.isGameOver) {
+  } else if (gameState == "playing") {
+    runGame();
+  } else if (gameState == "gameover") {
     drawGameOverUI();
-  } else {
-    player.update();
-    player.draw();
+  } else if (gameState == "leaderboard") {
   }
-
-  levelManager();
-
-  saucerFireBullets();
-
-  checkCollisions();
-
-  scoreManager();
-
-  drawUI();
 }
 
 function makeAsteroids(count, size) {
@@ -268,41 +249,53 @@ function screenShake() {
   }
 }
 
-function bulletsManager() {
+function objectManager() {
+  // Update and draw Player's bullets
   for (let bullet of bullets) {
     bullet.update();
     bullet.draw();
   }
 
+  // Remove Player's bullets if their lifespan is over or they are collided
   for (let i = bullets.length - 1; i >= 0; i--) {
     if (bullets[i].isDead) {
       bullets.splice(i, 1);
     }
   }
 
+  // Update and draw Saucers' bullets
   for (let saucerBullet of saucerBullets) {
     saucerBullet.update();
     saucerBullet.draw(true);
   }
 
+  // Remove Saucers' bullets if their lifespan is over or they are collided
   for (let i = saucerBullets.length - 1; i >= 0; i--) {
     if (saucerBullets[i].isDead) {
       saucerBullets.splice(i, 1);
     }
   }
-}
 
-function asteroidsManager() {
+  // Update and draw Asteroids
   for (let asteroid of asteroids) {
     asteroid.update();
     asteroid.draw();
   }
-}
 
-function saucersManager() {
+  // Update and draw Saucers
   for (let saucer of saucers) {
     saucer.update();
     saucer.draw();
+  }
+
+  // Update and draw Player
+  player.update();
+  player.draw();
+
+  // Check if player is dead
+  if(player.isGameOver)
+  {
+    gameState = "gameover";
   }
 }
 
@@ -314,11 +307,65 @@ function levelManager() {
   }
 }
 
+function mousePressed() {
+  if (gameState == "mainmenu") {
+    if (
+      mouseX > playButton.x &&
+      mouseX < playButton.x + playButton.w &&
+      mouseY > playButton.y &&
+      mouseY < playButton.y + playButton.h
+    ) {
+      gameState = "playing";
+    }
+  }
+}
+
+function runGame() {
+  if (isShaking) {
+    screenShake();
+  }
+
+  objectManager();
+
+  levelManager();
+
+  saucerFireBullets();
+
+  checkCollisions();
+
+  scoreManager();
+
+  drawUI();
+}
+
 function drawMainMenu() {
   push();
-  textSize(50);
+  for (let asteroid of asteroids) {
+    asteroid.update();
+    asteroid.draw();
+  }
+  textSize(100);
   fill("Grey");
-  text("Asteroid", width / 2 - 150, height / 2);
+  text("ASTEROIDS", width / 2 - 250, height / 2 - 100);
+  
+  // Change button color if mouse hovers on the play button
+  if (
+    mouseX > playButton.x &&
+    mouseX < playButton.x + playButton.w &&
+    mouseY > playButton.y &&
+    mouseY < playButton.y + playButton.h
+  ) {
+    fill("lightgrey");
+  }
+  else
+  {
+    fill("grey");
+  }
+
+  rect(playButton.x, playButton.y, playButton.w, playButton.h, 10);
+  textSize(50);
+  fill("Black");
+  text("PLAY", width / 2 - 60, height / 2 + 97);
   pop();
 }
 
