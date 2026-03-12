@@ -5,7 +5,6 @@ let gameState;
 let score = 0;
 let gameLevel = 1;
 let startAsteroidsNumber = 6;
-let leaderboardScores = [];
 let lastSpawnSaucerScore = 0;
 let saucerSpawnInterval = 1500;
 let lastLifeGainScore = 0;
@@ -28,6 +27,11 @@ let saucerPredictAimScore = 15000;
 let screenShakeDuration = 0.5;
 let shakeIntensity = 5;
 let isShaking = false;
+
+// Leaderboard valuables
+let leaderboard = [];
+let currentName = "";
+let input;
 
 // Buttons
 let playButton = {
@@ -61,9 +65,14 @@ function setup() {
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
 
-  // saucers.push(
-  //   new Saucer(30, createVector(0, random(height)), createVector(1, 0)),
-  // );
+  input = createInput("");
+  input.position(width / 2 + 30, height / 2 + 50);
+  input.hide();
+
+  leaderboard = getItem("leaderboard");
+  if (leaderboard == null) {
+    leaderboard = [];
+  }
 }
 
 function draw() {
@@ -250,7 +259,9 @@ function saucerFireBullets() {
           saucerAimOffset = random(-aimRange, aimRange);
         }
       }
-      saucerBullets.push(new Bullet(saucer.position.copy(), angle + saucerAimOffset));
+      saucerBullets.push(
+        new Bullet(saucer.position.copy(), angle + saucerAimOffset),
+      );
     }
   }
 }
@@ -335,7 +346,6 @@ function objectManager() {
 
   // Check if player is dead
   if (player.isGameOver && gameState !== "gameover") {
-    calculateLeaderboard();
     gameState = "gameover";
   }
 }
@@ -343,7 +353,9 @@ function objectManager() {
 function levelManager() {
   // level system: when all asteroids are cleared, spawn a new wave with a few extra asteroids
   if (asteroids.length == 0) {
+    player.isInvincible = true;
     asteroids = makeAsteroids(startAsteroidsNumber + gameLevel * 2, 50);
+
     gameLevel++;
   }
 }
@@ -387,6 +399,7 @@ function mousePressed() {
       mouseY > restartButton.y &&
       mouseY < restartButton.y + restartButton.h
     ) {
+      calculateLeaderboard();
       resetGame();
       gameState = "playing";
     } else if (
@@ -395,12 +408,14 @@ function mousePressed() {
       mouseY > lbButtonOnGameover.y &&
       mouseY < lbButtonOnGameover.y + lbButtonOnGameover.h
     ) {
+      calculateLeaderboard();
       gameState = "leaderboard";
     }
   }
 }
 
 function runGame() {
+  input.hide();
   if (isShaking) {
     screenShake();
   }
@@ -419,6 +434,7 @@ function runGame() {
 }
 
 function drawMainMenu() {
+  input.hide();
   push();
   for (let asteroid of asteroids) {
     asteroid.update();
@@ -495,6 +511,12 @@ function drawGameOverUI() {
   text("GAME OVER", width / 2, height / 2 - 60);
   textSize(40);
   text("Your Score: " + score, width / 2, height / 2 + 20);
+
+  text("Your Name: ", width / 2 - 80, height / 2 + 72);
+
+  input.show();
+  input.position(width / 2 + 30, height / 2 + 50);
+
   if (
     mouseX > restartButton.x &&
     mouseX < restartButton.x + restartButton.w &&
@@ -544,6 +566,7 @@ function drawGameOverUI() {
 }
 
 function drawLeaderboard() {
+  input.hide();
   drawGameOverObject();
   push();
   textAlign(CENTER, CENTER);
@@ -553,16 +576,15 @@ function drawLeaderboard() {
 
   textAlign(LEFT, BASELINE);
   textSize(30);
-  text("1. ", width / 2 - 180, height / 2 - 100);
-  text(leaderboardScores[0], width / 2 - 130, height / 2 - 100);
-  text("2. ", width / 2 - 180, height / 2 - 50);
-  text(leaderboardScores[1], width / 2 - 130, height / 2 - 50);
-  text("3. ", width / 2 - 180, height / 2);
-  text(leaderboardScores[2], width / 2 - 130, height / 2);
-  text("4. ", width / 2 - 180, height / 2 + 50);
-  text(leaderboardScores[3], width / 2 - 130, height / 2 + 50);
-  text("5. ", width / 2 - 180, height / 2 + 100);
-  text(leaderboardScores[4], width / 2 - 130, height / 2 + 100);
+
+  for (let i = 0; i < 5; i++) {
+    text(i + 1 + ".", width / 2 - 180, height / 2 - 100 + i * 50);
+
+    if (leaderboard[i]) {
+      text(leaderboard[i].name, width / 2 - 130, height / 2 - 100 + i * 50);
+      text(leaderboard[i].score, width / 2 + 50, height / 2 - 100 + i * 50);
+    }
+  }
 
   textAlign(CENTER, CENTER);
   textSize(30);
@@ -601,9 +623,22 @@ function drawGameOverObject() {
 }
 
 function calculateLeaderboard() {
-  leaderboardScores.push(score);
-  leaderboardScores.sort((a, b) => b - a);
-  leaderboardScores = leaderboardScores.slice(0, 5);
+  currentName = input.value();
+
+  if (currentName == "") {
+    currentName = "Anonymous";
+  }
+
+  leaderboard.push({
+    name: currentName,
+    score: score,
+  });
+
+  leaderboard.sort((a, b) => b.score - a.score);
+
+  leaderboard = leaderboard.slice(0, 5);
+
+  storeItem("leaderboard", leaderboard);
 }
 
 function resetGame() {
