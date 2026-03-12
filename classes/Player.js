@@ -69,7 +69,11 @@ class Player extends BaseActor {
     }
   }
 
-  bulletKnockback() {}
+  bulletKnockback() {
+      let force = p5.Vector.fromAngle(this.angle + PI);
+      force.mult(0.3);
+      this.velocity.add(force);
+  }
 
   calculateInvincibleTime() {
     if (this.isInvincible) {

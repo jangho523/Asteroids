@@ -240,6 +240,7 @@ function keyPressed() {
   if (!player.isGameOver) {
     if (keyCode === 32) {
       bullets.push(new Bullet(player.position, player.angle));
+      player.bulletKnockback();
     }
   }
 }
