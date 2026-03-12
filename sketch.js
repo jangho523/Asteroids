@@ -308,7 +308,7 @@ function objectManager() {
 
   // Check if player is dead
   if (player.isGameOver && gameState !== "gameover") {
-    leaderboardScores.push(score);
+    calculateLeaderboard();
     gameState = "gameover";
   }
 }
@@ -368,7 +368,6 @@ function mousePressed() {
       mouseY > lbButtonOnGameover.y &&
       mouseY < lbButtonOnGameover.y + lbButtonOnGameover.h
     ) {
-      calculateLeaderboard();
       gameState = "leaderboard";
     }
   }
@@ -571,6 +570,7 @@ function drawGameOverObject() {
 }
 
 function calculateLeaderboard() {
+  leaderboardScores.push(score);
   leaderboardScores.sort((a, b) => b - a);
   leaderboardScores = leaderboardScores.slice(0, 5);
 }
