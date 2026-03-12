@@ -26,9 +26,17 @@ let playButton = {
   h: 60,
 };
 
+let restartButton = {
+  x: 200,
+  y: 500,
+  w: 150,
+  h: 40,
+};
+
+
 function setup() {
   createCanvas(800, 800);
-  gameState = "mainmenu";
+  gameState = "gameover";
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
 }
@@ -318,6 +326,17 @@ function mousePressed() {
       gameState = "playing";
     }
   }
+
+    else if (gameState == "gameover") {
+    if (
+      mouseX > restartButton.x &&
+      mouseX < restartButton.x + restartButton.w &&
+      mouseY > restartButton.y &&
+      mouseY < restartButton.y + restartButton.h
+    ) {
+      resetGame();
+    }
+  }
 }
 
 function runGame() {
@@ -380,8 +399,36 @@ function drawUI() {
 
 function drawGameOverUI() {
   push();
-  textSize(50);
+  textSize(80);
   fill("Grey");
-  text("GAME OVER", width / 2 - 150, height / 2);
+  text("GAME OVER", width / 2 - 200, height / 2 - 60);
+
+  if (
+    mouseX > restartButton.x &&
+    mouseX < restartButton.x + restartButton.w &&
+    mouseY > restartButton.y &&
+    mouseY < restartButton.y + restartButton.h
+  ) {
+    fill("lightgrey");
+  }
+  else
+  {
+    fill("grey");
+  }
+  rect(restartButton.x, restartButton.y,restartButton.w,restartButton.h, 10);
+  textSize(32);
+  fill("black");
+  text("Restart", restartButton.x + 20, restartButton.y + restartButton.h - 10);
+
   pop();
+}
+
+function resetGame(){
+  isShaking = false;
+  player.isGameOver = false;
+  player.lives = 3;
+  score = 0;
+  asteroids = makeAsteroids(startAsteroidsNumber, 50);
+
+  gameState = "playing";
 }
