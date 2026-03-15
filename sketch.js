@@ -23,6 +23,9 @@ let saucerFireInterval = 0.5;
 let saucerAimOffset = 0;
 let saucerPredictAimScore = 15000;
 
+// Explosion Particle valualbes
+let particles = [];
+
 // Screen shake valuables
 let screenShakeDuration = 0.5;
 let shakeIntensity = 5;
@@ -62,6 +65,13 @@ let lbButtonOnGameover = {
 // Assets preload
 let shipImages = [];
 let asteroidImages = [];
+let saucerImage;
+let explosionImage = [];
+let backgroundImage;
+let explosionSFX;
+let shootSFX;
+let mainmenuBGM;
+let playingBGM;
 
 function preload() {
   shipImages[0] = loadImage("assets/sprites/ship-a1.png");
@@ -70,6 +80,18 @@ function preload() {
   asteroidImages[0] = loadImage("assets/sprites/big-a.png");
   asteroidImages[1] = loadImage("assets/sprites/big-b.png");
   asteroidImages[2] = loadImage("assets/sprites/big-c.png");
+  saucerImage = loadImage("assets/sprites/enemy-ship.png");
+  explosionImage[0] = loadImage("assets/sprites/explosions-a1.png");
+  explosionImage[1] = loadImage("assets/sprites/explosions-a2.png");
+  explosionImage[2] = loadImage("assets/sprites/explosions-a3.png");
+  explosionImage[3] = loadImage("assets/sprites/explosions-a4.png");
+  explosionImage[4] = loadImage("assets/sprites/explosions-a5.png");
+  explosionImage[5] = loadImage("assets/sprites/explosions-a6.png");
+  backgroundImage = loadImage("assets/sprites/background.png");
+  explosionSFX = loadSound("assets/audio/Explosion.wav");
+  shootSFX = loadSound("assets/audio/Shoot.wav");
+  mainmenuBGM = loadSound("assets/audio/Mainmenu.ogg");
+  playingBGM = loadSound("assets/audio/Playing.ogg");
 }
 
 function setup() {
@@ -120,6 +142,7 @@ function checkCollisions() {
     for (let i = asteroids.length - 1; i >= 0; i--) {
       if (isColliding(player, asteroids[i])) {
         player.loseLife();
+        spawnParticle(asteroids[i].position);
         handleAsteroidsHit(i, true);
         isShaking = true;
         break;
@@ -132,6 +155,7 @@ function checkCollisions() {
     for (let i = saucers.length - 1; i >= 0; i--) {
       if (isColliding(player, saucers[i])) {
         player.loseLife();
+        spawnParticle(saucers[i].position);
         handleSaucersHit(i);
         isShaking = true;
         break;
@@ -144,6 +168,7 @@ function checkCollisions() {
     for (let i = saucerBullets.length - 1; i >= 0; i--) {
       if (isColliding(player, saucerBullets[i])) {
         player.loseLife();
+        spawnParticle(saucerBullets[i].position);
         saucerBullets.splice(i, 1);
         isShaking = true;
         break;
@@ -156,6 +181,7 @@ function checkCollisions() {
     for (let j = asteroids.length - 1; j >= 0; j--) {
       if (isColliding(bullets[i], asteroids[j])) {
         handleAsteroidsHit(j, true);
+        spawnParticle(bullets[i].position);
         bullets.splice(i, 1);
         console.log("score: ", score);
         break;
@@ -168,6 +194,7 @@ function checkCollisions() {
     for (let j = saucers.length - 1; j >= 0; j--) {
       if (isColliding(bullets[i], saucers[j])) {
         handleSaucersHit(j, true);
+        spawnParticle(bullets[i].position);
         bullets.splice(i, 1);
         console.log("score: ", score);
         break;
@@ -180,6 +207,7 @@ function checkCollisions() {
     for (let j = asteroids.length - 1; j >= 0; j--) {
       if (isColliding(saucerBullets[i], asteroids[j])) {
         handleAsteroidsHit(j, false);
+        spawnParticle(saucerBullets[i].position);
         saucerBullets.splice(i, 1);
         break;
       }
@@ -191,6 +219,7 @@ function checkCollisions() {
     for (let j = asteroids.length - 1; j >= 0; j--) {
       if (isColliding(saucers[i], asteroids[j])) {
         handleAsteroidsHit(j, false);
+        spawnParticle(saucers[i].position);
         saucers.splice(i, 1);
         break;
       }
@@ -284,7 +313,7 @@ function scoreManager() {
   // Spawn a saucer for every 1,500 score
   if (score >= lastSpawnSaucerScore + saucerSpawnInterval) {
     lastSpawnSaucerScore += saucerSpawnInterval;
-    let randomSaucerSize = random() < 0.8 ? 50 : 30;
+    let randomSaucerSize = random() < 0.8 ? 70 : 50;
     let randomX = random() < 0.5 ? -2 : 2;
     saucers.push(
       new Saucer(
@@ -357,6 +386,19 @@ function objectManager() {
   // Update and draw Player
   player.update();
   player.draw();
+
+  // Update and draw Explosion Particles
+  for (let particle of particles) {
+    particle.update();
+    particle.draw();
+  }
+
+  // Remove particle effect when it finishes playing
+  for (let i = particles.length - 1; i >= 0; i--) {
+    if (particles[i].isDead) {
+      particles.splice(i, 1);
+    }
+  }
 
   // Check if player is dead
   if (player.isGameOver && gameState !== "gameover") {
@@ -653,6 +695,10 @@ function calculateLeaderboard() {
   leaderboard = leaderboard.slice(0, 5);
 
   storeItem("leaderboard", leaderboard);
+}
+
+function spawnParticle(position) {
+  particles.push(new ParticleManager(position.copy(), 50));
 }
 
 function resetGame() {
