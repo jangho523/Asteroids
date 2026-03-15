@@ -1,6 +1,6 @@
 class Player extends BaseActor {
   constructor(position) {
-    super(30, position, createVector(0, 0));
+    super(60, position, createVector(0, 0));
     this.rotateSpeed = 0.1;
     this.angle = -PI / 2;
     this.friction = 0.95;
@@ -9,6 +9,7 @@ class Player extends BaseActor {
     this.isInvincible = true;
     this.invincibleTimer = 0;
     this.isGameOver = false;
+    this.isMoving = false;
   }
 
   update() {
@@ -37,6 +38,9 @@ class Player extends BaseActor {
       let force = p5.Vector.fromAngle(this.angle);
       force.mult(0.3);
       this.velocity.add(force);
+      this.isMoving = true;
+    } else {
+      this.isMoving = false;
     }
 
     // HyperJump
@@ -70,9 +74,9 @@ class Player extends BaseActor {
   }
 
   bulletKnockback() {
-      let force = p5.Vector.fromAngle(this.angle + PI);
-      force.mult(0.3);
-      this.velocity.add(force);
+    let force = p5.Vector.fromAngle(this.angle + PI);
+    force.mult(0.3);
+    this.velocity.add(force);
   }
 
   calculateInvincibleTime() {
@@ -97,17 +101,31 @@ class Player extends BaseActor {
   draw() {
     push();
     translate(this.position.x, this.position.y);
-    rotate(this.angle);
-
+    rotate(this.angle + HALF_PI);
+    imageMode(CENTER);
     if (this.isInvincible) {
-      fill("Green");
+      if (frameCount % 8 < 4) {
+        if (!this.isMoving) {
+          image(shipImages[0], 0, 0, this.size, this.size);
+        } else {
+          if (frameCount % 6 < 3) {
+            image(shipImages[1], 0, 0, this.size, this.size);
+          } else {
+            image(shipImages[2], 0, 0, this.size, this.size);
+          }
+        }
+      }
     } else {
-      noFill();
+      if (!this.isMoving) {
+        image(shipImages[0], 0, 0, this.size, this.size);
+      } else {
+        if (frameCount % 6 < 3) {
+          image(shipImages[1], 0, 0, this.size, this.size);
+        } else {
+          image(shipImages[2], 0, 0, this.size, this.size);
+        }
+      }
     }
-
-    stroke(255);
-
-    triangle(18, 0, -12, -10, -12, 10);
 
     pop();
   }

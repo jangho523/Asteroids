@@ -59,8 +59,22 @@ let lbButtonOnGameover = {
   h: 50,
 };
 
+// Assets preload
+let shipImages = [];
+let asteroidImages = [];
+
+function preload() {
+  shipImages[0] = loadImage("assets/sprites/ship-a1.png");
+  shipImages[1] = loadImage("assets/sprites/ship-a2.png");
+  shipImages[2] = loadImage("assets/sprites/ship-a3.png");
+  asteroidImages[0] = loadImage("assets/sprites/big-a.png");
+  asteroidImages[1] = loadImage("assets/sprites/big-b.png");
+  asteroidImages[2] = loadImage("assets/sprites/big-c.png");
+}
+
 function setup() {
   createCanvas(800, 800);
+  noSmooth();
   gameState = "mainmenu";
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
