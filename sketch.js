@@ -62,18 +62,27 @@ let lbButtonOnGameover = {
   h: 50,
 };
 
-// Assets preload
+// Sprites preload
 let shipImages = [];
 let asteroidImages = [];
 let saucerImage;
-let explosionImage = [];
+let playerBulletImages = [];
+let saucerBulletImages = [];
+let explosionImages = [];
 let backgroundImage;
+
+// Audio preload
 let explosionSFX;
 let shootSFX;
+let saucerShootSFX;
+let hyperspaceSFX;
+let saucerPresenceSFX;
+let engineSFX;
 let mainmenuBGM;
 let playingBGM;
 
 function preload() {
+  // Sprites preload
   shipImages[0] = loadImage("assets/sprites/ship-a1.png");
   shipImages[1] = loadImage("assets/sprites/ship-a2.png");
   shipImages[2] = loadImage("assets/sprites/ship-a3.png");
@@ -81,15 +90,27 @@ function preload() {
   asteroidImages[1] = loadImage("assets/sprites/big-b.png");
   asteroidImages[2] = loadImage("assets/sprites/big-c.png");
   saucerImage = loadImage("assets/sprites/enemy-ship.png");
-  explosionImage[0] = loadImage("assets/sprites/explosions-a1.png");
-  explosionImage[1] = loadImage("assets/sprites/explosions-a2.png");
-  explosionImage[2] = loadImage("assets/sprites/explosions-a3.png");
-  explosionImage[3] = loadImage("assets/sprites/explosions-a4.png");
-  explosionImage[4] = loadImage("assets/sprites/explosions-a5.png");
-  explosionImage[5] = loadImage("assets/sprites/explosions-a6.png");
+  playerBulletImages[0] = loadImage("assets/sprites/player-bullet1.png");
+  playerBulletImages[1] = loadImage("assets/sprites/player-bullet2.png");
+  saucerBulletImages[0] = loadImage("assets/sprites/saucer-bullet1.png");
+  saucerBulletImages[1] = loadImage("assets/sprites/saucer-bullet2.png");
+  saucerBulletImages[2] = loadImage("assets/sprites/saucer-bullet3.png");
+  saucerBulletImages[3] = loadImage("assets/sprites/saucer-bullet4.png");
+  explosionImages[0] = loadImage("assets/sprites/explosions-a1.png");
+  explosionImages[1] = loadImage("assets/sprites/explosions-a2.png");
+  explosionImages[2] = loadImage("assets/sprites/explosions-a3.png");
+  explosionImages[3] = loadImage("assets/sprites/explosions-a4.png");
+  explosionImages[4] = loadImage("assets/sprites/explosions-a5.png");
+  explosionImages[5] = loadImage("assets/sprites/explosions-a6.png");
   backgroundImage = loadImage("assets/sprites/background.png");
+
+  // Sound preload
   explosionSFX = loadSound("assets/audio/Explosion.wav");
   shootSFX = loadSound("assets/audio/Shoot.wav");
+  saucerShootSFX = loadSound("assets/audio/Shoot.wav");
+  hyperspaceSFX = loadSound("assets/audio/Hyperspace.wav");
+  saucerPresenceSFX = loadSound("assets/audio/SaucerPresence.wav");
+  engineSFX = loadSound("assets/audio/Engine.mp3");
   mainmenuBGM = loadSound("assets/audio/Mainmenu.ogg");
   playingBGM = loadSound("assets/audio/Playing.ogg");
 }
@@ -109,11 +130,21 @@ function setup() {
   if (leaderboard == null) {
     leaderboard = [];
   }
+
+  explosionSFX.setVolume(0.1);
+  shootSFX.setVolume(0.1);
+  saucerShootSFX.setVolume(0.1);
+  hyperspaceSFX.setVolume(1);
+  saucerPresenceSFX.setVolume(0.5);
+  engineSFX.setVolume(0.4);
+  mainmenuBGM.setVolume(0.15);
+  playingBGM.setVolume(0.15);
 }
 
 function draw() {
   background(0);
-
+  playBGM();
+  image(backgroundImage, 0, 0, width, height);
   if (gameState == "mainmenu") {
     drawMainMenu();
   } else if (gameState == "playing") {
@@ -138,7 +169,7 @@ function makeAsteroids(count, size) {
 
 function checkCollisions() {
   // Player and Asteroids
-  if (!player.isInvincible) {
+  if (canPlayerCollide()) {
     for (let i = asteroids.length - 1; i >= 0; i--) {
       if (isColliding(player, asteroids[i])) {
         player.loseLife();
@@ -151,20 +182,21 @@ function checkCollisions() {
   }
 
   // Player and Saucers
-  if (!player.isInvincible) {
+  if (canPlayerCollide()) {
     for (let i = saucers.length - 1; i >= 0; i--) {
       if (isColliding(player, saucers[i])) {
         player.loseLife();
         spawnParticle(saucers[i].position);
         handleSaucersHit(i);
         isShaking = true;
+        saucerPresenceSFX.stop();
         break;
       }
     }
   }
 
   // Player and Saucerbullets
-  if (!player.isInvincible) {
+  if (canPlayerCollide()) {
     for (let i = saucerBullets.length - 1; i >= 0; i--) {
       if (isColliding(player, saucerBullets[i])) {
         player.loseLife();
@@ -196,6 +228,7 @@ function checkCollisions() {
         handleSaucersHit(j, true);
         spawnParticle(bullets[i].position);
         bullets.splice(i, 1);
+        saucerPresenceSFX.stop();
         console.log("score: ", score);
         break;
       }
@@ -221,10 +254,15 @@ function checkCollisions() {
         handleAsteroidsHit(j, false);
         spawnParticle(saucers[i].position);
         saucers.splice(i, 1);
+        saucerPresenceSFX.stop();
         break;
       }
     }
   }
+}
+
+function canPlayerCollide() {
+  return !player.isInvincible && !player.isHyperjumping && !player.isRespawning;
 }
 
 function isColliding(a, b) {
@@ -303,8 +341,9 @@ function saucerFireBullets() {
         }
       }
       saucerBullets.push(
-        new Bullet(saucer.position.copy(), angle + saucerAimOffset),
+        new Bullet(saucer.position.copy(), angle + saucerAimOffset, true),
       );
+      saucerShootSFX.play(0, 2);
     }
   }
 }
@@ -322,6 +361,7 @@ function scoreManager() {
         createVector(randomX, 0),
       ),
     );
+    saucerPresenceSFX.loop();
   }
 
   // Gain an extra live for every 10,000 score
@@ -418,9 +458,10 @@ function levelManager() {
 
 function keyPressed() {
   // fire bullets
-  if (gameState == "playing") {
+  if (gameState == "playing" && !player.isRespawning) {
     if (keyCode === 32) {
-      bullets.push(new Bullet(player.position, player.angle));
+      bullets.push(new Bullet(player.position, player.angle, false));
+      shootSFX.play();
       player.bulletKnockback();
     }
   } else if (gameState == "leaderboard") {
@@ -676,6 +717,19 @@ function drawGameOverObject() {
     saucer.update();
     saucer.draw();
   }
+
+  // Update and draw Explosion Particles
+  for (let particle of particles) {
+    particle.update();
+    particle.draw();
+  }
+
+  // Remove particle effect when it finishes playing
+  for (let i = particles.length - 1; i >= 0; i--) {
+    if (particles[i].isDead) {
+      particles.splice(i, 1);
+    }
+  }
 }
 
 function calculateLeaderboard() {
@@ -699,6 +753,26 @@ function calculateLeaderboard() {
 
 function spawnParticle(position) {
   particles.push(new ParticleManager(position.copy(), 50));
+  explosionSFX.play();
+}
+
+function playBGM() {
+  if (gameState == "mainmenu" || gameState == "leaderboard") {
+    if (!mainmenuBGM.isPlaying()) {
+      playingBGM.stop();
+      mainmenuBGM.loop();
+    }
+  } else if (gameState == "playing") {
+    if (!playingBGM.isPlaying()) {
+      mainmenuBGM.stop();
+      playingBGM.loop();
+    }
+  } else {
+    engineSFX.stop();
+    saucerPresenceSFX.stop();
+    mainmenuBGM.stop();
+    playingBGM.stop();
+  }
 }
 
 function resetGame() {
@@ -707,11 +781,11 @@ function resetGame() {
   lastLifeGainScore = 0;
   saucerFireTimer = 0;
   isShaking = false;
-  player.isGameOver = false;
-  player.lives = 3;
   score = 0;
+  player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
   bullets = [];
   saucers = [];
   saucerBullets = [];
+  particles = [];
 }

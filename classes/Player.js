@@ -10,17 +10,31 @@ class Player extends BaseActor {
     this.invincibleTimer = 0;
     this.isGameOver = false;
     this.isMoving = false;
+
+    this.hyperspaceTimer = 0;
+    this.isHyperjumping = false;
+    this.hasJumped = false;
+
+    this.isRespawning = false;
+    this.respawnTimer = 0;
+    this.respawnTime = 1.5;
   }
 
   update() {
     if (!this.isGameOver) {
-      this.handleInput();
+      if (!this.isHyperjumping && !this.isRespawning) {
+        this.handleInput();
+      }
 
       this.velocity.mult(this.friction);
 
       super.update();
 
       this.calculateInvincibleTime();
+
+      this.calculateHyperjumpTime();
+
+      this.calculateRespawnTime();
     }
   }
 
@@ -39,32 +53,67 @@ class Player extends BaseActor {
       force.mult(0.3);
       this.velocity.add(force);
       this.isMoving = true;
+      if (
+        !engineSFX.isPlaying() &&
+        !this.isRespawning &&
+        !this.isHyperjumping
+      ) {
+        engineSFX.loop();
+      }
     } else {
       this.isMoving = false;
+      engineSFX.stop();
     }
 
     // HyperJump
     if (keyIsDown(DOWN_ARROW) && !this.downHeld) {
-      this.position.x = random(width);
-      this.position.y = random(height);
-      this.velocity.set(0);
-      this.downHeld = true;
+      if (!this.isHyperjumping && !this.isRespawning) {
+        this.startHyperspaceJump();
+      }
     }
     if (!keyIsDown(DOWN_ARROW)) {
       this.downHeld = false;
     }
   }
 
+  calculateHyperjumpTime() {
+    if (this.isHyperjumping) {
+      this.hyperspaceTimer += deltaTime / 1000;
+
+      if (!this.hasJumped && this.hyperspaceTimer >= 0.25) {
+        this.hasJumped = true;
+        this.position.x = random(width);
+        this.position.y = random(height);
+      }
+
+      if (this.hyperspaceTimer >= 0.5) {
+        this.endHyperspaceJump();
+      }
+    }
+  }
+
+  startHyperspaceJump() {
+    engineSFX.stop();
+    this.isHyperjumping = true;
+    this.velocity.set(0);
+    this.downHeld = true;
+    this.isMoving = false;
+    hyperspaceSFX.play();
+  }
+
+  endHyperspaceJump() {
+    this.isHyperjumping = false;
+    this.hyperspaceTimer = 0;
+    this.hasJumped = false;
+  }
+
   loseLife() {
-    if (!this.isInvincible) {
+    if (!this.isInvincible && !this.isRespawning) {
       if (this.lives > 0) {
         --this.lives;
-        this.isInvincible = true;
-        console.log("Player is dead. lives: ", this.lives);
-        this.position.x = width / 2;
-        this.position.y = height / 2;
-        this.velocity.set(0);
-        this.angle = -PI / 2;
+        this.isRespawning = true;
+        this.isMoving = false;
+        engineSFX.stop();
       }
     }
 
@@ -89,6 +138,25 @@ class Player extends BaseActor {
     }
   }
 
+  calculateRespawnTime() {
+    if (this.isRespawning) {
+      this.respawnTimer += deltaTime / 1000;
+
+      if (this.respawnTimer >= this.respawnTime) {
+        this.isRespawning = false;
+        this.respawnTimer = 0;
+
+        this.position.x = width / 2;
+        this.position.y = height / 2;
+        this.velocity.set(0);
+        this.angle = -PI / 2;
+
+        this.isInvincible = true;
+        this.invincibleTimer = 0;
+      }
+    }
+  }
+
   gainExtraLife() {
     this.lives++;
   }
@@ -99,10 +167,26 @@ class Player extends BaseActor {
   }
 
   draw() {
+    if (this.isRespawning) {
+      return;
+    }
     push();
     translate(this.position.x, this.position.y);
     rotate(this.angle + HALF_PI);
     imageMode(CENTER);
+
+    let currentScale = 1;
+
+    if (this.isHyperjumping) {
+      if (this.hyperspaceTimer < 0.25) {
+        currentScale = 1 - this.hyperspaceTimer / 0.25;
+      } else {
+        currentScale = (this.hyperspaceTimer - 0.25) / 0.25;
+      }
+    }
+
+    scale(currentScale);
+
     if (this.isInvincible) {
       if (frameCount % 8 < 4) {
         if (!this.isMoving) {

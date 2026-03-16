@@ -15,7 +15,7 @@ class ParticleManager {
       this.frameTimer = 0;
       this.frameIndex++;
 
-      if (this.frameIndex >= explosionImage.length) {
+      if (this.frameIndex >= explosionImages.length) {
         this.isDead = true;
       }
     }
@@ -26,7 +26,7 @@ class ParticleManager {
     if (!this.isDead) {
       translate(this.position.x, this.position.y);
       imageMode(CENTER);
-      image(explosionImage[this.frameIndex], 0, 0, this.size, this.size);
+      image(explosionImages[this.frameIndex], 0, 0, this.size, this.size);
     }
     pop();
   }
