@@ -1,6 +1,6 @@
 class Player extends BaseActor {
   constructor(position) {
-    super(60, position, createVector(0, 0));
+    super(40, position, createVector(0, 0));
     this.rotateSpeed = 0.1;
     this.angle = -PI / 2;
     this.friction = 0.95;
@@ -18,6 +18,8 @@ class Player extends BaseActor {
     this.isRespawning = false;
     this.respawnTimer = 0;
     this.respawnTime = 1.5;
+
+    this.spriteSize = this.size + 20;
   }
 
   update() {
@@ -190,23 +192,23 @@ class Player extends BaseActor {
     if (this.isInvincible) {
       if (frameCount % 8 < 4) {
         if (!this.isMoving) {
-          image(shipImages[0], 0, 0, this.size, this.size);
+          image(shipImages[0], 0, 0, this.spriteSize, this.spriteSize);
         } else {
           if (frameCount % 6 < 3) {
-            image(shipImages[1], 0, 0, this.size, this.size);
+            image(shipImages[1], 0, 0, this.spriteSize, this.spriteSize);
           } else {
-            image(shipImages[2], 0, 0, this.size, this.size);
+            image(shipImages[2], 0, 0, this.spriteSize, this.spriteSize);
           }
         }
       }
     } else {
       if (!this.isMoving) {
-        image(shipImages[0], 0, 0, this.size, this.size);
+        image(shipImages[0], 0, 0, this.spriteSize, this.spriteSize);
       } else {
         if (frameCount % 6 < 3) {
-          image(shipImages[1], 0, 0, this.size, this.size);
+          image(shipImages[1], 0, 0, this.spriteSize, this.spriteSize);
         } else {
-          image(shipImages[2], 0, 0, this.size, this.size);
+          image(shipImages[2], 0, 0, this.spriteSize, this.spriteSize);
         }
       }
     }

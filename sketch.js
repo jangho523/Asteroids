@@ -23,6 +23,12 @@ let saucerFireInterval = 0.5;
 let saucerAimOffset = 0;
 let saucerPredictAimScore = 15000;
 
+// UI Related valuable
+let isLevelupTextShowing = false;
+let levelupTextTimer = 0;
+let alpha = 0;
+let fadeAmount = 1;
+
 // Explosion Particle valualbes
 let particles = [];
 
@@ -45,7 +51,7 @@ let playButton = {
 };
 let restartButton = {
   x: 180,
-  y: 500,
+  y: 520,
   w: 200,
   h: 50,
 };
@@ -57,7 +63,7 @@ let lbButtonOnMainmenu = {
 };
 let lbButtonOnGameover = {
   x: 430,
-  y: 500,
+  y: 520,
   w: 200,
   h: 50,
 };
@@ -80,6 +86,9 @@ let saucerPresenceSFX;
 let engineSFX;
 let mainmenuBGM;
 let playingBGM;
+
+// Font preload
+let fontBoldPixels;
 
 function preload() {
   // Sprites preload
@@ -113,12 +122,16 @@ function preload() {
   engineSFX = loadSound("assets/audio/Engine.mp3");
   mainmenuBGM = loadSound("assets/audio/Mainmenu.ogg");
   playingBGM = loadSound("assets/audio/Playing.ogg");
+
+  // font preload
+  fontBoldPixels = loadFont("assets/font/BoldPixels.otf");
 }
 
 function setup() {
   createCanvas(800, 800);
+  textFont(fontBoldPixels);
   noSmooth();
-  gameState = "mainmenu";
+  gameState = "gameover";
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
 
@@ -172,8 +185,8 @@ function checkCollisions() {
   if (canPlayerCollide()) {
     for (let i = asteroids.length - 1; i >= 0; i--) {
       if (isColliding(player, asteroids[i])) {
+        spawnParticle(player.position.copy());
         player.loseLife();
-        spawnParticle(asteroids[i].position);
         handleAsteroidsHit(i, true);
         isShaking = true;
         break;
@@ -186,7 +199,8 @@ function checkCollisions() {
     for (let i = saucers.length - 1; i >= 0; i--) {
       if (isColliding(player, saucers[i])) {
         player.loseLife();
-        spawnParticle(saucers[i].position);
+        spawnParticle(player.position.copy());
+        spawnParticle(saucers[i].position.copy());
         handleSaucersHit(i);
         isShaking = true;
         saucerPresenceSFX.stop();
@@ -199,8 +213,8 @@ function checkCollisions() {
   if (canPlayerCollide()) {
     for (let i = saucerBullets.length - 1; i >= 0; i--) {
       if (isColliding(player, saucerBullets[i])) {
+        spawnParticle(player.position.copy());
         player.loseLife();
-        spawnParticle(saucerBullets[i].position);
         saucerBullets.splice(i, 1);
         isShaking = true;
         break;
@@ -225,8 +239,8 @@ function checkCollisions() {
   for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = saucers.length - 1; j >= 0; j--) {
       if (isColliding(bullets[i], saucers[j])) {
+        spawnParticle(saucers[j].position.copy());
         handleSaucersHit(j, true);
-        spawnParticle(bullets[i].position);
         bullets.splice(i, 1);
         saucerPresenceSFX.stop();
         console.log("score: ", score);
@@ -251,8 +265,8 @@ function checkCollisions() {
   for (let i = saucers.length - 1; i >= 0; i--) {
     for (let j = asteroids.length - 1; j >= 0; j--) {
       if (isColliding(saucers[i], asteroids[j])) {
+        spawnParticle(saucers[i].position.copy());
         handleAsteroidsHit(j, false);
-        spawnParticle(saucers[i].position);
         saucers.splice(i, 1);
         saucerPresenceSFX.stop();
         break;
@@ -453,6 +467,7 @@ function levelManager() {
     asteroids = makeAsteroids(startAsteroidsNumber + gameLevel * 2, 50);
 
     gameLevel++;
+    isLevelupTextShowing = true;
   }
 }
 
@@ -533,14 +548,22 @@ function runGame() {
 function drawMainMenu() {
   input.hide();
   push();
+
   for (let asteroid of asteroids) {
     asteroid.update();
     asteroid.draw();
   }
   textAlign(CENTER);
+
+  push();
   textSize(100);
-  fill("Grey");
+  fill("white");
+  drawingContext.shadowOffsetX = 10;
+  drawingContext.shadowOffsetY = 10;
+  drawingContext.shadowBlur = 2;
+  drawingContext.shadowColor = "black";
   text("ASTEROIDS", width / 2, height / 2 - 100);
+  pop();
 
   // Change button color if mouse hovers on the play button
   if (
@@ -549,15 +572,22 @@ function drawMainMenu() {
     mouseY > playButton.y &&
     mouseY < playButton.y + playButton.h
   ) {
-    fill("lightgrey");
-  } else {
     fill("grey");
+  } else {
+    fill("white");
   }
+  noStroke();
+  push();
 
-  rect(playButton.x, playButton.y, playButton.w, playButton.h, 10);
+  drawingContext.shadowOffsetX = 10;
+  drawingContext.shadowOffsetY = 10;
+  drawingContext.shadowBlur = 2;
+  drawingContext.shadowColor = "black";
+  rect(playButton.x, playButton.y, playButton.w, playButton.h, 100);
+  pop();
   textSize(50);
   fill("Black");
-  text("PLAY", width / 2, height / 2 + 97);
+  text("PLAY", width / 2, height / 2 + 93);
 
   if (
     mouseX > lbButtonOnMainmenu.x &&
@@ -565,21 +595,28 @@ function drawMainMenu() {
     mouseY > lbButtonOnMainmenu.y &&
     mouseY < lbButtonOnMainmenu.y + lbButtonOnMainmenu.h
   ) {
-    fill("lightgrey");
-  } else {
     fill("grey");
+  } else {
+    fill("white");
   }
+  noStroke();
+  push();
 
+  drawingContext.shadowOffsetX = 10;
+  drawingContext.shadowOffsetY = 10;
+  drawingContext.shadowBlur = 2;
+  drawingContext.shadowColor = "black";
   rect(
     lbButtonOnMainmenu.x,
     lbButtonOnMainmenu.y,
     lbButtonOnMainmenu.w,
     lbButtonOnMainmenu.h,
-    10,
+    100,
   );
+  pop();
   fill("Black");
-  textSize(25);
-  text("LEADERBOARD", width / 2, height / 2 + 190);
+  textSize(30);
+  text("LEADERBOARD", width / 2, height / 2 + 188);
 
   textSize(20);
   fill("grey");
@@ -591,10 +628,31 @@ function drawMainMenu() {
 
 function drawUI() {
   push();
+  textAlign(CENTER);
+  drawingContext.shadowOffsetX = 10;
+  drawingContext.shadowOffsetY = 10;
+  drawingContext.shadowBlur = 2;
+  drawingContext.shadowColor = "black";
   textSize(30);
-  fill("red");
-  text("Score: " + score, width / 2 - 60, 50);
-  text("Lives: " + player.lives, width / 2 + 150, 50);
+  fill("white");
+  text("Level: " + gameLevel, 120, 50);
+  text("Score: " + score, width / 2, 50);
+  text("Lives: " + player.lives, 680, 50);
+
+  if (isLevelupTextShowing) {
+    levelupTextTimer += deltaTime / 1000;
+    textSize(70);
+    alpha += fadeAmount;
+    if (alpha <= 0 || alpha >= 255) {
+      fadeAmount *= -1;
+    }
+    fill();
+    text("Level Up!", width / 2, height / 2);
+    if (levelupTextTimer >= 1.5) {
+      isLevelupTextShowing = false;
+      levelupTextTimer = 0;
+    }
+  }
   pop();
 }
 
@@ -604,15 +662,20 @@ function drawGameOverUI() {
   push();
   textSize(80);
   textAlign(CENTER);
-  fill("Grey");
+  push();
+  drawingContext.shadowOffsetX = 10;
+  drawingContext.shadowOffsetY = 10;
+  drawingContext.shadowBlur = 2;
+  drawingContext.shadowColor = "black";
+  fill("white");
   text("GAME OVER", width / 2, height / 2 - 60);
   textSize(40);
   text("Your Score: " + score, width / 2, height / 2 + 20);
 
   text("Your Name: ", width / 2 - 80, height / 2 + 72);
-
+  pop();
   input.show();
-  input.position(width / 2 + 30, height / 2 + 50);
+  input.position(width / 2 + 30, height / 2 + 53);
 
   if (
     mouseX > restartButton.x &&
@@ -620,43 +683,57 @@ function drawGameOverUI() {
     mouseY > restartButton.y &&
     mouseY < restartButton.y + restartButton.h
   ) {
-    fill("lightgrey");
-  } else {
     fill("grey");
+  } else {
+    fill("white");
   }
-  rect(restartButton.x, restartButton.y, restartButton.w, restartButton.h, 10);
-
+  noStroke();
+  push();
+  drawingContext.shadowOffsetX = 10;
+  drawingContext.shadowOffsetY = 10;
+  drawingContext.shadowBlur = 2;
+  drawingContext.shadowColor = "black";
+  rect(restartButton.x, restartButton.y, restartButton.w, restartButton.h, 100);
+  pop();
   if (
     mouseX > lbButtonOnGameover.x &&
     mouseX < lbButtonOnGameover.x + lbButtonOnGameover.w &&
     mouseY > lbButtonOnGameover.y &&
     mouseY < lbButtonOnGameover.y + lbButtonOnGameover.h
   ) {
-    fill("lightgrey");
-  } else {
     fill("grey");
+  } else {
+    fill("white");
   }
-  textSize(32);
+  textSize(36);
+  noStroke();
+  push();
+  drawingContext.shadowOffsetX = 10;
+  drawingContext.shadowOffsetY = 10;
+  drawingContext.shadowBlur = 2;
+  drawingContext.shadowColor = "black";
   rect(
     lbButtonOnGameover.x,
     lbButtonOnGameover.y,
     lbButtonOnGameover.w,
     lbButtonOnGameover.h,
-    10,
+    100,
   );
+  pop();
 
   fill("black");
   text(
-    "Restart",
+    "RESTART",
     restartButton.x + 100,
-    restartButton.y + restartButton.h - 14,
+    restartButton.y + restartButton.h - 16.5,
   );
 
   fill("black");
+  textSize(30);
   text(
-    "Leaderboard",
+    "LEADERBOARD",
     lbButtonOnGameover.x + 100,
-    lbButtonOnGameover.y + lbButtonOnGameover.h - 14,
+    lbButtonOnGameover.y + lbButtonOnGameover.h - 16.5,
   );
 
   pop();
@@ -667,24 +744,28 @@ function drawLeaderboard() {
   drawGameOverObject();
   push();
   textAlign(CENTER, CENTER);
-  textSize(50);
-  fill("Grey");
+  drawingContext.shadowOffsetX = 10;
+  drawingContext.shadowOffsetY = 10;
+  drawingContext.shadowBlur = 2;
+  drawingContext.shadowColor = "black";
+  textSize(65);
+  fill("white");
   text("LEADERBOARD", width / 2, height / 2 - 250);
 
   textAlign(LEFT, BASELINE);
-  textSize(30);
+  textSize(40);
 
   for (let i = 0; i < 5; i++) {
     text(i + 1 + ".", width / 2 - 180, height / 2 - 100 + i * 50);
 
     if (leaderboard[i]) {
       text(leaderboard[i].name, width / 2 - 130, height / 2 - 100 + i * 50);
-      text(leaderboard[i].score, width / 2 + 50, height / 2 - 100 + i * 50);
+      text(leaderboard[i].score, width / 2 + 80, height / 2 - 100 + i * 50);
     }
   }
 
   textAlign(CENTER, CENTER);
-  textSize(30);
+  textSize(40);
   text("PRESS SPACE FOR MAINMENU", width / 2, height / 2 + 250);
   pop();
 }
