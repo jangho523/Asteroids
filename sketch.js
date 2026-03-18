@@ -624,7 +624,7 @@ function drawMainMenu() {
   textSize(20);
   fill("grey");
   textAlign(RIGHT, BOTTOM);
-  text("By Jangho Son", width - 20, height - 20);
+  text("By Sonstar", width - 20, height - 20);
 
   pop();
 }
