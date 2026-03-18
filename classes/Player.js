@@ -64,7 +64,9 @@ class Player extends BaseActor {
       }
     } else {
       this.isMoving = false;
-      engineSFX.stop();
+      if (engineSFX.isPlaying()) {
+        engineSFX.stop();
+      }
     }
 
     // HyperJump

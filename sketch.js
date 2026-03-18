@@ -4,7 +4,7 @@ p5.disableFriendlyErrors = true;
 let gameState;
 let score = 0;
 let gameLevel = 1;
-let startAsteroidsNumber = 6;
+let startAsteroidsNumber = 5;
 let lastSpawnSaucerScore = 0;
 let saucerSpawnInterval = 1500;
 let lastLifeGainScore = 0;
@@ -26,8 +26,8 @@ let saucerPredictAimScore = 15000;
 // UI Related valuable
 let isLevelupTextShowing = false;
 let levelupTextTimer = 0;
-let alpha = 0;
-let fadeAmount = 1;
+let alpha = 255;
+let isFading = false;
 
 // Explosion Particle valualbes
 let particles = [];
@@ -131,7 +131,7 @@ function setup() {
   createCanvas(800, 800);
   textFont(fontBoldPixels);
   noSmooth();
-  gameState = "gameover";
+  gameState = "mainmenu";
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
 
@@ -229,7 +229,6 @@ function checkCollisions() {
         handleAsteroidsHit(j, true);
         spawnParticle(bullets[i].position);
         bullets.splice(i, 1);
-        console.log("score: ", score);
         break;
       }
     }
@@ -243,7 +242,6 @@ function checkCollisions() {
         handleSaucersHit(j, true);
         bullets.splice(i, 1);
         saucerPresenceSFX.stop();
-        console.log("score: ", score);
         break;
       }
     }
@@ -375,7 +373,9 @@ function scoreManager() {
         createVector(randomX, 0),
       ),
     );
-    saucerPresenceSFX.loop();
+    if (!saucerPresenceSFX.isPlaying()) {
+      saucerPresenceSFX.loop();
+    }
   }
 
   // Gain an extra live for every 10,000 score
@@ -468,6 +468,9 @@ function levelManager() {
 
     gameLevel++;
     isLevelupTextShowing = true;
+    levelupTextTimer = 0;
+    alpha = 255;
+    isFading = false;
   }
 }
 
@@ -641,16 +644,23 @@ function drawUI() {
 
   if (isLevelupTextShowing) {
     levelupTextTimer += deltaTime / 1000;
+
     textSize(70);
-    alpha += fadeAmount;
-    if (alpha <= 0 || alpha >= 255) {
-      fadeAmount *= -1;
-    }
-    fill();
+    fill(255, 255, 255, alpha);
     text("Level Up!", width / 2, height / 2);
+
     if (levelupTextTimer >= 1.5) {
-      isLevelupTextShowing = false;
-      levelupTextTimer = 0;
+      isFading = true;
+    }
+
+    if (isFading) {
+      alpha -= (255 / 0.5) * (deltaTime / 1000);
+
+      if (alpha <= 0) {
+        isLevelupTextShowing = false;
+        levelupTextTimer = 0;
+        isFading = false;
+      }
     }
   }
   pop();
