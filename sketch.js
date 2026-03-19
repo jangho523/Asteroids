@@ -873,6 +873,10 @@ function resetGame() {
   saucerFireTimer = 0;
   isShaking = false;
   score = 0;
+  isLevelupTextShowing = false;
+  levelupTextTimer = 0;
+  alpha = 255;
+  isFading = false;
   player = new Player(createVector(width / 2, height / 2));
   asteroids = makeAsteroids(startAsteroidsNumber, 50);
   bullets = [];
