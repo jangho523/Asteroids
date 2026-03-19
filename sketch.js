@@ -147,8 +147,8 @@ function setup() {
   explosionSFX.setVolume(0.1);
   shootSFX.setVolume(0.1);
   saucerShootSFX.setVolume(0.1);
-  hyperspaceSFX.setVolume(1);
-  saucerPresenceSFX.setVolume(0.5);
+  hyperspaceSFX.setVolume(0.6);
+  saucerPresenceSFX.setVolume(0.4);
   engineSFX.setVolume(0.4);
   mainmenuBGM.setVolume(0.15);
   playingBGM.setVolume(0.15);
