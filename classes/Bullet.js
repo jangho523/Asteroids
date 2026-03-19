@@ -12,6 +12,9 @@ class Bullet extends BaseActor {
     this.frameIndex = 0;
     this.frameTimer = 0;
     this.frameInterval = 0.1;
+
+    this.isFading = false;
+    this.alpha = 255;
   }
 
   update() {
@@ -19,7 +22,7 @@ class Bullet extends BaseActor {
 
     this.lifeSpan -= deltaTime / 1000;
     if (this.lifeSpan <= 0) {
-      this.isDead = true;
+      this.isFading = true;
     }
 
     this.frameTimer += deltaTime / 1000;
@@ -38,6 +41,13 @@ class Bullet extends BaseActor {
         }
       }
     }
+
+    if (this.isFading) {
+      this.alpha -= (255 / 0.1) * (deltaTime / 1000);
+      if (this.alpha <= 0) {
+        this.isDead = true;
+      }
+    }
   }
 
   draw() {
@@ -45,11 +55,13 @@ class Bullet extends BaseActor {
     translate(this.position.x, this.position.y);
     rotate(this.angle);
     imageMode(CENTER);
+    tint(255, this.alpha);
     if (this.isSaucerBullet) {
       image(saucerBulletImages[this.frameIndex], 0, 0, this.size, this.size);
     } else {
       image(playerBulletImages[this.frameIndex], 0, 0, this.size, this.size);
     }
+    noTint();
     pop();
   }
 }
